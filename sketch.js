@@ -8,10 +8,12 @@
  *
  * - A MonoSynth from p5.sound is used to generate audio.
  * - A Delay effect is applied to the synth's audio output.
+ * - A Distortion effect is also available.
  * - Certain keys (like 'q', 'w', 'e', etc.) are mapped to
  *   specific musical notes (e.g., F2, G2, A2).
  * - Typing other characters (including uppercase letters if SHIFT is pressed)
- *   appends text to the screen.
+ *   appends text to the screen AND spawns a quick visual effect.
+ * - Three sliders control Attack time (ADSR), Delay amount, and Distortion.
  *
  * How to Use:
  * 1. Open this page in your browser with a web server (for example, using
@@ -20,8 +22,8 @@
  *    (some browsers need a user interaction before playing sound).
  * 3. Type keys that correspond to notes to hear the synth. The typed keys
  *    also get printed on the screen.
- * 4. Use arrow keys (UP, DOWN, LEFT, RIGHT) to change the attack time (ADSR)
- *    or the delay time.
+ * 4. Adjust the Attack, Delay, and Distortion sliders near the bottom-left
+ *    of the window to shape the sound.
  * 5. Resize your browser window — the canvas will automatically resize.
  *
  ******************************************************/
@@ -29,9 +31,7 @@
 /**
  * Global Variables
  * ----------------
- * We'll declare all variables at the top so it's easy to see what's available.
  */
-
 let synth;               // p5.MonoSynth object that generates sound
 let letters = "";        // A string to store typed text for display
 let textsize = 32;       // The base text size in pixels
@@ -48,8 +48,13 @@ let audioStarted = false; // Flag to ensure we start the audio context only once
 let attackTime = 0.1;    // Length of the 'attack' phase in seconds
 let delayTime = 0.2;     // Amount of delay time in seconds
 
-let envelope;            // A separate p5.Envelope object (optional if we want more control)
-let delay;               // p5.Delay effect object
+// p5.Envelope, p5.Delay, and p5.Distortion objects
+let envelope;
+let delay;
+let distortion;
+
+// Distortion amount (0.0 to 1.0)
+let distortionAmount = 0;
 
 /**
  * A mapping of keyboard keys to musical note names.
@@ -63,6 +68,18 @@ let notesMap = {
     'c': 'F5', 'v': 'G5', 'b': 'A5', 'n': 'B5', 'm': 'C6'
 };
 
+// =======================
+// Sliders & Labels
+// =======================
+let attackSlider, attackLabel;
+let delaySlider, delayLabel;
+let distSlider, distLabel;
+
+/*******************************************
+ * Visual Effects: typed "particles"
+ *******************************************/
+let typedParticles = [];  // small "sparkles" or circles
+
 /**
  * setup()
  * 
@@ -73,198 +90,233 @@ function setup() {
     // Creates a canvas that fills the entire browser window
     createCanvas(windowWidth, windowHeight);
 
-    // Set the text size and font (we'll use a monospace font: Consolas)
+    // Set text size and font (we'll use a monospace font: Consolas)
     textSize(textsize);
     textFont('Consolas');
 
     // Calculate boxWidth for positioning text. We take half the window width minus 100.
     boxWidth = width / 2 - 100;
 
-    // Initialize the MonoSynth, a built-in synthesizer that has its own envelope.
+    // MonoSynth (p5.MonoSynth) with its own internal envelope
     synth = new p5.MonoSynth();
 
-    // Create an additional envelope if you want more advanced control.
-    // If you only want to use the MonoSynth's built-in envelope, this can be optional.
+    // Extra envelope if you want more advanced control
     envelope = new p5.Envelope();
     envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
 
-    // Create a Delay effect. We'll connect it to the MonoSynth's output in playNote().
+    // Create a Delay effect
     delay = new p5.Delay();
+
+    // Create Distortion and connect to synth output
+    distortion = new p5.Distortion(0.0, '2x');
+    distortion.process(synth.output);
+
+    // ================
+    // Create Sliders
+    // ================
+    attackSlider = createSlider(0, 1, attackTime, 0.01);
+    delaySlider = createSlider(0, 1, delayTime, 0.01);
+    distSlider = createSlider(0, 1, 0, 0.01);
+
+    // Create label elements for each slider
+    attackLabel = createDiv();
+    delayLabel = createDiv();
+    distLabel = createDiv();
+
+    // Some styling for labels
+    attackLabel.style('color', '#fff');
+    delayLabel.style('color', '#fff');
+    distLabel.style('color', '#fff');
 }
 
 /**
  * draw()
  * 
- * The draw function runs continuously (roughly 60 times per second by default).
- * We handle our background, text display, and any UI drawing here.
+ * The draw function runs ~60 times per second.
+ * We handle background, text display, slider updates, and visuals here.
  */
 function draw() {
-    // Fill the background with red (R=255, G=0, B=0)
-    background(255, 0, 0);
+    background(255, 0, 0); // red background
+    fill(255);             // white text
 
-    // Set fill color for text to white (R=255, G=255, B=255)
-    fill(255);
+    // Read slider values each frame
+    attackTime = attackSlider.value();
+    delayTime = delaySlider.value();
+    distortionAmount = distSlider.value();
+
+    // Update envelope with new attack
+    envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
+
+    // Update distortion effect
+    distortion.set(distortionAmount, '2x');
 
     // Figure out how many lines of text fit in the window (minus margins).
     let linesPossible = (height - margin) / leading;
 
-    // If our typed text has more lines than what fits, we shift everything upwards
-    // so the newest lines are always visible.
+    // If typed text has more lines than fits, shift upwards
     if (linesPossible - numberOfEnters <= 0) {
         textboxOffset = (linesPossible - numberOfEnters) * leading
             + margin / 2
             + manualOffsetVariable * leading;
     } else {
-        // Otherwise, we start near the top margin
         textboxOffset = margin / 2;
     }
 
     // Set the leading (line spacing) for the text
     textLeading(leading);
 
-    // Draw the typed text onto the canvas.
-    // (x position = margin/2, y position = textboxOffset, width = width-margin,
-    //  height= height * 5 to allow for large overflow)
+    // Draw the typed text
     text(letters, margin / 2, textboxOffset, width - margin, height * 5);
 
-    // Display UI text (attack and delay times) at the bottom-left corner
-    textSize(16);
-    text(`Attack: ${attackTime.toFixed(2)}s`, 20, height - 40);
-    text(`Delay: ${delayTime.toFixed(2)}s`, 20, height - 20);
+    // Visual effects: draw typed "particles"
+    renderVisualEffects();
 
-    // (Optional) If you want to track the cursor position, you can do:
-    // cursorX = textWidth(letters);
-    // But it's not displayed right now.
+    // ===============
+    // Position sliders & labels near bottom-left
+    // ===============
+    let sliderX = 20;
+    let sliderSpacing = 30;
+    let bottom = height - 20;
+
+    // Attack
+    attackSlider.position(sliderX, bottom - sliderSpacing);
+    attackLabel.position(sliderX + 180, bottom - sliderSpacing);
+    attackLabel.html(`Attack: ${attackTime.toFixed(2)}`);
+
+    // Delay
+    delaySlider.position(sliderX, bottom - sliderSpacing * 2);
+    delayLabel.position(sliderX + 180, bottom - sliderSpacing * 2);
+    delayLabel.html(`Delay: ${delayTime.toFixed(2)}`);
+
+    // Distortion
+    distSlider.position(sliderX, bottom - sliderSpacing * 3);
+    distLabel.position(sliderX + 180, bottom - sliderSpacing * 3);
+    distLabel.html(`Distortion: ${distortionAmount.toFixed(2)}`);
 }
 
 /**
  * keyPressed()
- * - Fires on every key press, including special keys (arrows, SHIFT, etc.)
- * - We handle special keys here (Backspace, Enter, arrows) & notes.
+ * - Handles special keys (Backspace, Enter)
+ * - Plays notes if the key is in notesMap
+ * - Ensures audio is started on first press
  */
 function keyPressed() {
-    // Unlock audio on the first key press
+    // Unlock audio on first key press
     if (!audioStarted) {
         userStartAudio();
         audioStarted = true;
     }
 
-    // Handle special keys:
     if (key === 'Backspace') {
-        // Remove last character from letters
         letters = letters.slice(0, -1);
     }
     else if (key === 'Enter' || key === 'Return') {
-        // Add newline and track number of Enters
+        // Just do a newline, do NOT type the word "Enter"
         letters += "\n";
         numberOfEnters++;
     }
-    else if (keyCode === UP_ARROW) {
-        // Increase attack time
-        attackTime = min(attackTime + 0.05, 1);
-        envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
-    }
-    else if (keyCode === DOWN_ARROW) {
-        // Decrease attack time
-        attackTime = max(attackTime - 0.05, 0);
-        envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
-    }
-    else if (keyCode === LEFT_ARROW) {
-        // Decrease delay time
-        delayTime = max(delayTime - 0.05, 0);
-    }
-    else if (keyCode === RIGHT_ARROW) {
-        // Increase delay time
-        delayTime = min(delayTime + 0.05, 1);
-    }
     else if (key in notesMap) {
-        // Play a note if key is mapped
         playNote(notesMap[key]);
-        // (We do NOT add the note to `letters` here, 
-        //   because keyTyped() will handle normal characters)
     }
-    // If none of these conditions match, 
-    // we let keyTyped() catch it (for normal letters, punctuation, etc.)
 }
 
 /**
  * keyTyped()
- * - Only fires on normal typed characters 
- *   (letters, numbers, punctuation). 
- * - SHIFT, CTRL, ALT, arrow keys, etc. do NOT trigger keyTyped().
+ * - Appends the typed character to `letters`
+ * - Spawns a visual effect for typed characters
+ * - Ignores "Enter" so we don't get literal "Enter" text
  */
 function keyTyped() {
-    // Append the typed character to our `letters` string
-    letters += key;
+    if (key !== 'Enter' && key !== 'Return') {
+        letters += key;
+        spawnVisualEffect(key);
+    }
 }
 
 /**
  * playNote(note)
- * 
- * This function handles converting a note name (like 'C4') to a frequency,
- * then playing it on the MonoSynth. It also applies a Delay effect.
- *
- * @param {string} note - e.g. "C4", "G#3", "A5"
+ * - Convert note name (e.g. 'C4') to frequency
+ * - Play it on the MonoSynth
+ * - Apply Delay effect
  */
 function playNote(note) {
-    // Convert the textual note (e.g., "C4") into a MIDI number (e.g., 60)
     let midiNum = noteToMidi(note);
-    // Convert the MIDI number into a frequency in hertz
     let freq = midiToFreq(midiNum);
 
-    // p5.MonoSynth has its own internal envelope, so we can simply call .play().
-    // The arguments are: frequency, velocity (0.0 to 1.0), startTime, duration
     synth.play(freq, 0.5, 0, 0.5);
-
-    // Manually control the amplitude or another parameter with the envelope
-    envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
     envelope.play(synth.output);
 
-    // Route the synth's OUTPUT into the delay effect.
-    // This is important because the Delay expects an audio node, not the synth object itself.
-    // (p5.MonoSynth.output is the underlying Web Audio node.)
+    // Send synth output through delay with current `delayTime`
     delay.process(synth.output, delayTime, 0.5, 2300);
 }
 
 /**
  * noteToMidi(note)
- * 
- * Converts a textual note name like "C4", "G#3", "F2" into a MIDI number.
- * If it fails to parse, it defaults to 60 (which is Middle C).
- *
- * @param {string} note - A string representing the note (example: "C4", "A#3").
- * @return {number} A MIDI note number (0-127 in typical range).
+ * - Converts a note name like "C4", "G#3" to a MIDI number
+ * - Returns 60 (C4) if parsing fails
  */
 function noteToMidi(note) {
-    // A lookup table for note names to their semitone offsets from C
     let notes = {
         "C": 0, "C#": 1, "D": 2, "D#": 3, "E": 4,
         "F": 5, "F#": 6, "G": 7, "G#": 8, "A": 9,
         "A#": 10, "B": 11
     };
-
-    // Use a regular expression to separate the pitch (like 'C#') from the octave (like '4')
     let match = note.match(/([A-G]#?)(\d)/);
-
-    // If we successfully match the note pattern, calculate the MIDI number
     if (match) {
-        let pitch = match[1];       // e.g. "C#", "F", "G#"
-        let octave = parseInt(match[2]); // e.g. 4, 3, 2
-        // MIDI formula: (octave + 1) * 12 + noteIndex
-        // The +1 in the octave is because MIDI starts at octave -1 for note 0
+        let pitch = match[1];
+        let octave = parseInt(match[2]);
         return 12 * (octave + 1) + notes[pitch];
     }
-    // If parsing fails, return 60 (Middle C) by default
-    return 60;
+    return 60; // default to middle C
 }
 
 /**
  * windowResized()
- * 
- * A p5.js callback function that automatically fires whenever the browser
- * window is resized. We call resizeCanvas to make our canvas match
- * the new window size.
+ * - Adjust the canvas when window size changes
  */
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
+}
+
+/*******************************************
+ * Visual Effects: typed "particles"
+ *******************************************/
+
+/**
+ * spawnVisualEffect(key)
+ * - Creates a new particle each time a character is typed.
+ */
+function spawnVisualEffect(key) {
+    let p = {
+        x: random(margin, width - margin),
+        y: random(textboxOffset - 20, textboxOffset + 50),
+        size: random(10, 30),
+        life: 255, // fade-out timer
+        c: color(random(255), random(255), random(255))
+    };
+    typedParticles.push(p);
+}
+
+/**
+ * renderVisualEffects()
+ * - Draws & updates each particle, removing it when life <= 0
+ */
+function renderVisualEffects() {
+    for (let i = typedParticles.length - 1; i >= 0; i--) {
+        let p = typedParticles[i];
+
+        noStroke();
+        fill(p.c);
+        ellipse(p.x, p.y, p.size);
+
+        // Move upward slightly & fade out
+        p.y -= 0.5;
+        p.life -= 4;
+        p.c.setAlpha(p.life);
+
+        // Remove if fully faded
+        if (p.life <= 0) {
+            typedParticles.splice(i, 1);
+        }
+    }
 }
