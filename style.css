@@ -1,0 +1,16 @@
+body {
+    font-family: 'Consolas', monospace;
+    text-align: center;
+    background-color: #282c34;
+    color: white;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* Prevent scrollbars */
+}
+
+canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+}
