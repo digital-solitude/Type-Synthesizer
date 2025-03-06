@@ -43,6 +43,12 @@ let cursorX = 0;         // Tracks the horizontal cursor position (not currently
 let boxWidth;            // Width of the text box (calculated in setup)
 let manualOffsetVariable = 0; // Extra variable to control offset if needed
 let audioStarted = false; // Flag to ensure we start the audio context only once
+let sallyHintText = "Hello, my name is sally, I'm a secretary.";
+let hintTextOpacity = 100; // Slightly higher opacity for readability
+let hintTextOverlay = "";
+let backgroundImg; // Will store the loaded image
+
+
 
 // ADSR (Attack-Decay-Sustain-Release) Envelope settings
 let attackTime = 0.1;    // Length of the 'attack' phase in seconds
@@ -53,6 +59,12 @@ let envelope;
 let delay;
 let distortion;
 
+// Color transition variables
+let bgColorStart = [50, 50, 50];     // Dark grey
+let bgColorEnd = [200, 200, 200];    // Light grey
+let textColorStart = [100, 255, 100]; // Light green
+let textColorEnd = [0, 100, 0];       // Dark green
+let colorTransitionTime = 0;
 // Distortion amount (0.0 to 1.0)
 let distortionAmount = 0;
 
@@ -62,10 +74,13 @@ let distortionAmount = 0;
  * These note names will be converted to MIDI numbers, then to frequencies.
  */
 let notesMap = {
-    'q': 'F2', 'w': 'G2', 'e': 'A2', 'r': 'B2', 't': 'C3', 'y': 'D3', 'u': 'E3',
-    'i': 'F3', 'o': 'G3', 'p': 'A3', 'a': 'B3', 's': 'C4', 'd': 'D4', 'f': 'E4',
-    'g': 'F4', 'h': 'G4', 'j': 'A4', 'k': 'B4', 'l': 'C5', 'z': 'D5', 'x': 'E5',
-    'c': 'F5', 'v': 'G5', 'b': 'A5', 'n': 'B5', 'm': 'C6'
+    'q': 'F3', 'w': 'G3', 'e': 'A3', 'r': 'B3', 't': 'C4', 'y': 'D4', 'u': 'E4',
+    'i': 'F4', 'o': 'G4', 'p': 'A4', 'a': 'B4', 's': 'C5', 'd': 'D5', 'f': 'E5',
+    'g': 'F5', 'h': 'G5', 'j': 'A5', 'k': 'B5', 'l': 'C6', 'z': 'D6', 'x': 'E6',
+    'c': 'F6', 'v': 'G6', 'b': 'A6', 'n': 'B6', 'm': 'C7', 'Q': 'F#3', 'W': 'G#3', 'E': 'A#3', 'R': 'B3', 'T': 'C#4', 'Y': 'D#4', 'U': 'E4',
+    'I': 'F#4', 'O': 'G#4', 'P': 'A#4', 'A': 'B4', 'S': 'C#5', 'D': 'D#5', 'F': 'E5',
+    'G': 'F#5', 'H': 'G#5', 'J': 'A#5', 'K': 'B5', 'L': 'C#6', 'Z': 'D#6', 'X': 'E6',
+    'C': 'F#6', 'V': 'G#6', 'B': 'A#6', 'N': 'B6', 'M': 'C#7',
 };
 
 // =======================
@@ -79,6 +94,23 @@ let distSlider, distLabel;
  * Visual Effects: typed "particles"
  *******************************************/
 let typedParticles = [];  // small "sparkles" or circles
+
+function preload() {
+    // Replace 'your-image-path.jpg' with the path to your image file
+    // Make sure the image is in the same directory as your sketch or provide the correct path
+    backgroundImg = loadImage('background.png', img => {
+        console.log("Image loaded successfully");
+    }, err => {
+        console.error("Error loading image:", err);
+        // Fallback image
+        backgroundImg = loadImage('fallback-image-path.jpg', img => {
+            console.log("Fallback image loaded successfully");
+        }, err => {
+            console.error("Error loading fallback image:", err);
+            backgroundImg = null; // Set to null if loading fails
+        });
+    });
+}
 
 /**
  * setup()
@@ -98,7 +130,7 @@ function setup() {
     boxWidth = width / 2 - 100;
 
     // MonoSynth (p5.MonoSynth) with its own internal envelope
-    synth = new p5.MonoSynth();
+    synth = new p5.PolySynth();
 
     // Extra envelope if you want more advanced control
     envelope = new p5.Envelope();
@@ -136,8 +168,118 @@ function setup() {
  * We handle background, text display, slider updates, and visuals here.
  */
 function draw() {
-    background(255, 0, 0); // red background
-    fill(255);             // white text
+    // Slowly transition background and text colors
+    colorTransitionTime += 0.0005; // Very slow transition
+
+    // Ensure smooth transition between 0 and 1
+    let t = sin(colorTransitionTime) * 0.5 + 0.5;
+
+    // Interpolate background color
+    let bgColor = [
+        lerp(bgColorStart[0], bgColorEnd[0], t),
+        lerp(bgColorStart[1], bgColorEnd[1], t),
+        lerp(bgColorStart[2], bgColorEnd[2], t)
+    ];
+
+    // Interpolate text color
+    let textColor = [
+        lerp(textColorStart[0], textColorEnd[0], t),
+        lerp(textColorStart[1], textColorEnd[1], t),
+        lerp(textColorStart[2], textColorEnd[2], t)
+    ];
+
+    // Calculate perceived brightness of background
+    let brightness = (bgColor[0] * 299 + bgColor[1] * 587 + bgColor[2] * 114) / 1000;
+
+    // Calculate perceived brightness of text
+    let textBrightness = (textColor[0] * 299 + textColor[1] * 587 + textColor[2] * 114) / 1000;
+
+    // Calculate contrast ratio
+    let contrastRatio = (Math.max(brightness, textBrightness) + 0.05) /
+        (Math.min(brightness, textBrightness) + 0.05);
+
+    // If contrast is too low, adjust text color while maintaining green hue
+    if (contrastRatio < 4.5) {
+        // Increase contrast by adjusting green components
+        if (brightness > textBrightness) {
+            // If background is lighter, darken green
+            textColor[0] = Math.max(0, textColor[0] * 0.5);     // Reduce red component
+            textColor[1] = Math.max(0, textColor[1] * 0.5);     // Reduce green component
+            textColor[2] = Math.max(0, textColor[2] * 0.5);     // Reduce blue component
+        } else {
+            // If background is darker, brighten green
+            textColor[0] = Math.min(255, textColor[0] * 1.5);   // Increase red component
+            textColor[1] = Math.min(255, textColor[1] * 1.5);   // Increase green component
+            textColor[2] = Math.min(255, textColor[2] * 1.5);   // Increase blue component
+        }
+    }
+
+    // Set background with interpolated color
+    background(bgColor[0], bgColor[1], bgColor[2]);
+
+    if (backgroundImg) {
+        // Draw the background image in the bottom-right corner with opacity
+        push(); // Save current drawing state
+
+        // Set the image size (adjust these values as needed)
+        let imgWidth = 250;  // Width in pixels
+        let imgHeight = 200; // Height in pixels
+
+        // Calculate position (bottom-right corner with 20px margin)
+        let imgX = width - imgWidth - 1;
+        let imgY = height - imgHeight - 20;
+
+        // Apply transparency
+        tint(255, 200); // Opacity level (0-255)
+
+        // Draw the image
+        image(backgroundImg, imgX, imgY, imgWidth, imgHeight);
+
+        pop(); // Restore drawing state
+    }
+
+    // Set text color with interpolated color
+    fill(textColor[0], textColor[1], textColor[2]);
+
+    // Hint text handling
+    if (letters.length === 0 || hintTextOverlay.length < sallyHintText.length) {
+        push(); // Save the current drawing state
+
+        // Set text properties for hint
+        textSize(textsize);
+        textFont('Consolas');
+
+        // Low opacity hint text with muted color
+        let hintTextColor = [
+            textColor[0] * 0.5,
+            textColor[1] * 0.5,
+            textColor[2] * 0.5
+        ];
+        fill(hintTextColor[0], hintTextColor[1], hintTextColor[2], 50);
+
+        textAlign(LEFT, TOP);
+
+        // Create a display text that preserves hint text structure
+        let displayText = sallyHintText;
+        for (let i = 0; i < hintTextOverlay.length; i++) {
+            displayText = displayText.substring(0, i) + hintTextOverlay[i] + displayText.substring(i + 1);
+        }
+
+        // Render hint text at a fixed position
+        text(displayText, margin / 2, margin / 2, width - margin, height * 5);
+
+        pop(); // Restore drawing state
+    }
+
+    if (letters.length > 0) {
+        // Use the dynamic text color calculation
+        fill(textColor[0], textColor[1], textColor[2]);
+        textSize(textsize);
+        textFont('Consolas');
+
+        // Adjust text positioning to match hint text position
+        text(letters, margin / 2, margin / 2, width - margin, height * 5);
+    }
 
     // Read slider values each frame
     attackTime = attackSlider.value();
@@ -208,7 +350,14 @@ function keyPressed() {
     }
 
     if (key === 'Backspace') {
-        letters = letters.slice(0, -1);
+        if (hintTextOverlay.length > 0) {
+            // Remove last character from overlay
+            hintTextOverlay = hintTextOverlay.slice(0, -1);
+            letters = letters.slice(0, -1);
+        } else {
+            // Normal backspace behavior after hint text
+            letters = letters.slice(0, -1);
+        }
     }
     else if (key === 'Enter' || key === 'Return') {
         // Just do a newline, do NOT type the word "Enter"
@@ -216,7 +365,11 @@ function keyPressed() {
         numberOfEnters++;
     }
     else if (key in notesMap) {
-        playNote(notesMap[key]);
+        if (synth) {
+            playNote(notesMap[key]);
+        } else {
+            console.error("synth is undefined");
+        }
     }
 }
 
@@ -226,11 +379,25 @@ function keyPressed() {
  * - Spawns a visual effect for typed characters
  * - Ignores "Enter" so we don't get literal "Enter" text
  */
+// Override p5.js keyTyped function to call keyTypedHandler()
 function keyTyped() {
     if (key !== 'Enter' && key !== 'Return') {
-        letters += key;
-        spawnVisualEffect(key);
+        keyTypedHandler(key);
     }
+}
+
+// Custom function to handle adding characters
+function keyTypedHandler(typedChar) {
+    if (hintTextOverlay.length < sallyHintText.length) {
+        hintTextOverlay += typedChar;
+
+        if (hintTextOverlay.length === sallyHintText.length) {
+            letters = hintTextOverlay;
+        }
+    } else {
+        letters += typedChar;
+    }
+    spawnVisualEffect(typedChar);  // Ensure the visual effect works
 }
 
 /**
@@ -240,14 +407,18 @@ function keyTyped() {
  * - Apply Delay effect
  */
 function playNote(note) {
-    let midiNum = noteToMidi(note);
-    let freq = midiToFreq(midiNum);
+    if (synth) {
+        let midiNum = noteToMidi(note);
+        let freq = midiToFreq(midiNum);
 
-    synth.play(freq, 0.5, 0, 0.5);
-    envelope.play(synth.output);
+        synth.play(freq, 0.5, 0, 0.5);
+        envelope.play(synth.output);
 
-    // Send synth output through delay with current `delayTime`
-    delay.process(synth.output, delayTime, 0.5, 2300);
+        // Send synth output through delay with current `delayTime`
+        delay.process(synth.output, delayTime, 0.5, 2300);
+    } else {
+        console.error("synth is undefined");
+    }
 }
 
 /**
@@ -320,3 +491,12 @@ function renderVisualEffects() {
         }
     }
 }
+
+// prevent Firefox from opening search bar on ' press
+document.addEventListener('keydown', function (event) {
+    // Check if the pressed key is `'` (apostrophe)
+    if (event.key === "'") {
+        event.preventDefault(); // Prevent Firefox Quick Find
+        keyTypedHandler("'");  // Manually trigger the keyTyped function
+    }
+});
