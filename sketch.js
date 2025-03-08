@@ -48,7 +48,7 @@ let hintTextOpacity = 100; // Slightly higher opacity for readability
 let hintTextOverlay = "";
 let backgroundImg; // Will store the loaded image
 
-
+let gameState = "intro"; // Game state: intro, story, ...
 
 // ADSR (Attack-Decay-Sustain-Release) Envelope settings
 let attackTime = 0.1;    // Length of the 'attack' phase in seconds
@@ -102,13 +102,7 @@ function preload() {
         console.log("Image loaded successfully");
     }, err => {
         console.error("Error loading image:", err);
-        // Fallback image
-        backgroundImg = loadImage('fallback-image-path.jpg', img => {
-            console.log("Fallback image loaded successfully");
-        }, err => {
-            console.error("Error loading fallback image:", err);
-            backgroundImg = null; // Set to null if loading fails
-        });
+        backgroundImg = null; // Set to null if loading fails
     });
 }
 
@@ -168,6 +162,36 @@ function setup() {
  * We handle background, text display, slider updates, and visuals here.
  */
 function draw() {
+    switch (gameState) {
+        case "intro":
+            drawIntro();
+            break;
+        case "story":
+            drawStory();
+            break;
+    }
+}
+
+function drawIntro() {
+    // Set background color
+    background(0);
+
+    // Set text color
+    fill(255);
+
+    // Set text properties
+    textSize(32);
+    textAlign(CENTER, CENTER);
+
+    // Display the title
+    text("Sally's Helpers", width / 2, height / 2 - 50);
+
+    // Display instructions
+    textSize(24);
+    text("Press any key to start", width / 2, height / 2 + 50);
+}
+
+function drawStory() {
     // Slowly transition background and text colors
     colorTransitionTime += 0.0005; // Very slow transition
 
@@ -349,6 +373,18 @@ function keyPressed() {
         audioStarted = true;
     }
 
+    switch (gameState) {
+        case "intro":
+            gameState = "story";
+            break;
+        case "story":
+            handleStoryKeyPressed();
+            break;
+    }
+}
+
+function handleStoryKeyPressed() {
+
     if (key === 'Backspace') {
         if (hintTextOverlay.length > 0) {
             // Remove last character from overlay
@@ -381,6 +417,16 @@ function keyPressed() {
  */
 // Override p5.js keyTyped function to call keyTypedHandler()
 function keyTyped() {
+    switch (gameState) {
+        case "intro":
+            break;
+        case "story":
+            handleStoryKeyTyped();
+            break;
+    }
+}
+
+function handleStoryKeyTyped() {
     if (key !== 'Enter' && key !== 'Return') {
         keyTypedHandler(key);
     }
