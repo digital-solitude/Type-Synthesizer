@@ -45,15 +45,14 @@ let manualOffsetVariable = 0; // Extra variable to control offset if needed
 let audioStarted = false; // Flag to ensure we start the audio context only once
 let sallyHintText = "Hello, my name is sally, I'm a secretary.";
 let hintTextOpacity = 100; // Slightly higher opacity for readability
-let hintTextOverlay = "";
 let backgroundImg; // Will store the loaded image
 
-let gameState = "intro"; // Game state: intro, story, ...
+let gameState = "story"; // Game state: intro, tutorial, story, freeplay
 
 // ADSR (Attack-Decay-Sustain-Release) Envelope settings
 let attackTime = 0.1;    // Length of the 'attack' phase in seconds
 let delayTime = 0.2;     // Amount of delay time in seconds
-
+let distortionAmount = 0.0; // Amount of distortion (0.0 to 1.0)
 // p5.Envelope, p5.Delay, and p5.Distortion objects
 let envelope;
 let delay;
@@ -65,8 +64,6 @@ let bgColorEnd = [200, 200, 200];    // Light grey
 let textColorStart = [100, 255, 100]; // Light green
 let textColorEnd = [0, 100, 0];       // Dark green
 let colorTransitionTime = 0;
-// Distortion amount (0.0 to 1.0)
-let distortionAmount = 0;
 
 /**
  * A mapping of keyboard keys to musical note names.
@@ -83,12 +80,6 @@ let notesMap = {
     'C': 'F#6', 'V': 'G#6', 'B': 'A#6', 'N': 'B6', 'M': 'C#7',
 };
 
-// =======================
-// Sliders & Labels
-// =======================
-let attackSlider, attackLabel;
-let delaySlider, delayLabel;
-let distSlider, distLabel;
 
 /*******************************************
  * Visual Effects: typed "particles"
@@ -119,6 +110,8 @@ function setup() {
     // Set text size and font (we'll use a monospace font: Consolas)
     textSize(textsize);
     textFont('Consolas');
+    // Set the leading (line spacing) for the text
+    textLeading(leading);
 
     // Calculate boxWidth for positioning text. We take half the window width minus 100.
     boxWidth = width / 2 - 100;
@@ -137,30 +130,9 @@ function setup() {
     distortion = new p5.Distortion(0.0, '2x');
     distortion.process(synth.output);
 
-    // ================
-    // Create Sliders
-    // ================
-    attackSlider = createSlider(0, 1, attackTime, 0.01);
-    delaySlider = createSlider(0, 1, delayTime, 0.01);
-    distSlider = createSlider(0, 1, 0, 0.01);
-
-    // Create label elements for each slider
-    attackLabel = createDiv();
-    delayLabel = createDiv();
-    distLabel = createDiv();
-
-    // Some styling for labels
-    attackLabel.style('color', '#fff');
-    delayLabel.style('color', '#fff');
-    distLabel.style('color', '#fff');
 }
 
-/**
- * draw()
- * 
- * The draw function runs ~60 times per second.
- * We handle background, text display, slider updates, and visuals here.
- */
+
 function draw() {
     switch (gameState) {
         case "intro":
@@ -191,7 +163,39 @@ function drawIntro() {
     text("Press any key to start", width / 2, height / 2 + 50);
 }
 
+let typedLetters = []; // Array to store TypedLetter instances
+
 function drawStory() {
+    transitionColors();
+
+    fill(255, 255, 255, 100);
+    // stroke(0);
+    textAlign(LEFT, TOP);
+    text(sallyHintText, margin / 2, margin / 2, width - margin, height * 5);
+
+    // // Figure out how many lines of text fit in the window (minus margins).
+    // let linesPossible = (height - margin) / leading;
+
+    // // If typed text has more lines than fits, shift upwards
+    // if (linesPossible - numberOfEnters <= 0) {
+    //     textboxOffset = (linesPossible - numberOfEnters) * leading
+    //         + margin / 2
+    //         + manualOffsetVariable * leading;
+    // } else {
+    //     textboxOffset = margin / 2;
+    // }
+
+    // update and display each TypedLetter
+    for (let i = 0; i < typedLetters.length; i++) {
+        typedLetters[i].update();
+        typedLetters[i].display();
+    }
+
+    // Visual effects: draw typed "particles"
+    renderVisualEffects();
+}
+
+function transitionColors() {
     // Slowly transition background and text colors
     colorTransitionTime += 0.0005; // Very slow transition
 
@@ -240,124 +244,8 @@ function drawStory() {
 
     // Set background with interpolated color
     background(bgColor[0], bgColor[1], bgColor[2]);
-
-    if (backgroundImg) {
-        // Draw the background image in the bottom-right corner with opacity
-        push(); // Save current drawing state
-
-        // Set the image size (adjust these values as needed)
-        let imgWidth = 250;  // Width in pixels
-        let imgHeight = 200; // Height in pixels
-
-        // Calculate position (bottom-right corner with 20px margin)
-        let imgX = width - imgWidth - 1;
-        let imgY = height - imgHeight - 20;
-
-        // Apply transparency
-        tint(255, 200); // Opacity level (0-255)
-
-        // Draw the image
-        image(backgroundImg, imgX, imgY, imgWidth, imgHeight);
-
-        pop(); // Restore drawing state
-    }
-
     // Set text color with interpolated color
     fill(textColor[0], textColor[1], textColor[2]);
-
-    // Hint text handling
-    if (letters.length === 0 || hintTextOverlay.length < sallyHintText.length) {
-        push(); // Save the current drawing state
-
-        // Set text properties for hint
-        textSize(textsize);
-        textFont('Consolas');
-
-        // Low opacity hint text with muted color
-        let hintTextColor = [
-            textColor[0] * 0.5,
-            textColor[1] * 0.5,
-            textColor[2] * 0.5
-        ];
-        fill(hintTextColor[0], hintTextColor[1], hintTextColor[2], 50);
-
-        textAlign(LEFT, TOP);
-
-        // Create a display text that preserves hint text structure
-        let displayText = sallyHintText;
-        for (let i = 0; i < hintTextOverlay.length; i++) {
-            displayText = displayText.substring(0, i) + hintTextOverlay[i] + displayText.substring(i + 1);
-        }
-
-        // Render hint text at a fixed position
-        text(displayText, margin / 2, margin / 2, width - margin, height * 5);
-
-        pop(); // Restore drawing state
-    }
-
-    if (letters.length > 0) {
-        // Use the dynamic text color calculation
-        fill(textColor[0], textColor[1], textColor[2]);
-        textSize(textsize);
-        textFont('Consolas');
-
-        // Adjust text positioning to match hint text position
-        text(letters, margin / 2, margin / 2, width - margin, height * 5);
-    }
-
-    // Read slider values each frame
-    attackTime = attackSlider.value();
-    delayTime = delaySlider.value();
-    distortionAmount = distSlider.value();
-
-    // Update envelope with new attack
-    envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
-
-    // Update distortion effect
-    distortion.set(distortionAmount, '2x');
-
-    // Figure out how many lines of text fit in the window (minus margins).
-    let linesPossible = (height - margin) / leading;
-
-    // If typed text has more lines than fits, shift upwards
-    if (linesPossible - numberOfEnters <= 0) {
-        textboxOffset = (linesPossible - numberOfEnters) * leading
-            + margin / 2
-            + manualOffsetVariable * leading;
-    } else {
-        textboxOffset = margin / 2;
-    }
-
-    // Set the leading (line spacing) for the text
-    textLeading(leading);
-
-    // Draw the typed text
-    text(letters, margin / 2, textboxOffset, width - margin, height * 5);
-
-    // Visual effects: draw typed "particles"
-    renderVisualEffects();
-
-    // ===============
-    // Position sliders & labels near bottom-left
-    // ===============
-    let sliderX = 20;
-    let sliderSpacing = 30;
-    let bottom = height - 20;
-
-    // Attack
-    attackSlider.position(sliderX, bottom - sliderSpacing);
-    attackLabel.position(sliderX + 180, bottom - sliderSpacing);
-    attackLabel.html(`Attack: ${attackTime.toFixed(2)}`);
-
-    // Delay
-    delaySlider.position(sliderX, bottom - sliderSpacing * 2);
-    delayLabel.position(sliderX + 180, bottom - sliderSpacing * 2);
-    delayLabel.html(`Delay: ${delayTime.toFixed(2)}`);
-
-    // Distortion
-    distSlider.position(sliderX, bottom - sliderSpacing * 3);
-    distLabel.position(sliderX + 180, bottom - sliderSpacing * 3);
-    distLabel.html(`Distortion: ${distortionAmount.toFixed(2)}`);
 }
 
 /**
@@ -386,13 +274,13 @@ function keyPressed() {
 function handleStoryKeyPressed() {
 
     if (key === 'Backspace') {
-        if (hintTextOverlay.length > 0) {
-            // Remove last character from overlay
-            hintTextOverlay = hintTextOverlay.slice(0, -1);
-            letters = letters.slice(0, -1);
-        } else {
-            // Normal backspace behavior after hint text
-            letters = letters.slice(0, -1);
+        // remove the last TypedLetter
+        typedLetters.pop();
+        // remove the last character from the string
+        letters = letters.slice(0, - 1);
+        // if the last character was a newline, decrement the counter
+        if (letters.slice(-1) === '\n') {
+            numberOfEnters--;
         }
     }
     else if (key === 'Enter' || key === 'Return') {
@@ -410,18 +298,18 @@ function handleStoryKeyPressed() {
 }
 
 /**
- * keyTyped()
+ * keyTyped() calls handleStoryKeyTyped()
+ * - This function is called for each key typed
  * - Appends the typed character to `letters`
  * - Spawns a visual effect for typed characters
  * - Ignores "Enter" so we don't get literal "Enter" text
  */
-// Override p5.js keyTyped function to call keyTypedHandler()
 function keyTyped() {
     switch (gameState) {
         case "intro":
             break;
         case "story":
-            handleStoryKeyTyped();
+            handleStoryKeyTyped(); // Override p5.js keyTyped function to call keyTypedHandler()
             break;
     }
 }
@@ -434,16 +322,19 @@ function handleStoryKeyTyped() {
 
 // Custom function to handle adding characters
 function keyTypedHandler(typedChar) {
-    if (hintTextOverlay.length < sallyHintText.length) {
-        hintTextOverlay += typedChar;
 
-        if (hintTextOverlay.length === sallyHintText.length) {
-            letters = hintTextOverlay;
-        }
-    } else {
-        letters += typedChar;
-    }
+    letters += typedChar;
+
     spawnVisualEffect(typedChar);  // Ensure the visual effect works
+
+    // Calculate the x and y position for the new TypedLetter
+    let lastNewlineIndex = letters.lastIndexOf('\n');
+    let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
+    let x = margin / 2 + textWidth(lineText.slice(0, -1));
+    let y = margin / 2 + numberOfEnters * leading;
+    typedLetters.push(new TypedLetter(typedChar, x, y));
+
+    console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
 }
 
 /**
@@ -456,6 +347,12 @@ function playNote(note) {
     if (synth) {
         let midiNum = noteToMidi(note);
         let freq = midiToFreq(midiNum);
+
+        // Update envelope with new attack
+        envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
+
+        // Update distortion effect
+        distortion.set(distortionAmount, '2x');
 
         synth.play(freq, 0.5, 0, 0.5);
         envelope.play(synth.output);
@@ -546,3 +443,31 @@ document.addEventListener('keydown', function (event) {
         keyTypedHandler("'");  // Manually trigger the keyTyped function
     }
 });
+
+// create a class called TypedLetter
+class TypedLetter {
+    constructor(letter, x, y) {
+        this.letter = letter;
+        this.x = x;
+        this.y = y;
+        this.size = 32;
+        this.c = color(random(255), random(255), random(255));
+        this.shakeOffset = 0;
+    }
+
+    display() {
+        noStroke();
+        fill(this.c);
+        textSize(this.size);
+        text(this.letter, this.x + this.shakeOffset, this.y);
+    }
+
+    update() {
+        // Randomly decide to shake
+        if (random(1) < 0.05) { // 5% chance to shake
+            this.shakeOffset = random(-2, 2); // Shake by a small amount
+        } else {
+            this.shakeOffset = 0; // No shake
+        }
+    }
+}
