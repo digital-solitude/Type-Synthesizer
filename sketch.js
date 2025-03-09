@@ -51,6 +51,11 @@ const chanceToWiggle = 0.001; // Chance to start wiggling if not already wigglin
 
 let gameState = "story"; // Game state: intro, tutorial, story, freeplay
 
+/**
+ * Sound Effects Variables
+ */
+let globalNoteShift = 0;
+const maxNoteShift = 96; // Maximum note shift (8 octaves)
 // ADSR (Attack-Decay-Sustain-Release) Envelope settings
 let attackTime = 0.1;    // Length of the 'attack' phase in seconds
 let delayTime = 0.2;     // Amount of delay time in seconds
@@ -295,6 +300,19 @@ function handleStoryKeyPressed() {
             numberOfEnters--;
         }
     }
+    // for UP/DOWN arrow keys, adjust the globalNoteShift
+    else if (keyCode === UP_ARROW) {
+        // shift it up but cap it at maxNoteShift
+        globalNoteShift += 12;
+        if (globalNoteShift > maxNoteShift) {
+            globalNoteShift = maxNoteShift;
+        }
+    } else if (keyCode === DOWN_ARROW) {
+        globalNoteShift -= 12;
+        if (globalNoteShift < -maxNoteShift) {
+            globalNoteShift = -maxNoteShift;
+        }
+    }
     else if (key === 'Enter' || key === 'Return') {
         // Just do a newline, do NOT type the word "Enter"
         letters += "\n";
@@ -366,7 +384,10 @@ function playNote(note) {
         // Update distortion effect
         distortion.set(distortionAmount, '2x');
 
-        synth.play(freq, 0.5, 0, 0.5);
+        // minimum frequency is 0 hz
+        const playFreq = Math.max(0, freq + globalNoteShift);
+
+        synth.play(playFreq, 0.5, 0, 0.5);
         envelope.play(synth.output);
 
         // Send synth output through delay with current `delayTime`
