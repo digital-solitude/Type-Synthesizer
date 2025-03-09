@@ -49,7 +49,7 @@ let backgroundImg; // Will store the loaded image
 const percentageToStartWiggle = 0.5; // Percentage of the text box to start wiggling
 const chanceToWiggle = 0.001; // Chance to start wiggling if not already wiggling
 
-let gameState = "story"; // Game state: intro, tutorial, story, freeplay
+let gameState = "intro"; // Game state: intro, tutorial, story, freeplay
 
 /**
  * Sound Effects Variables
