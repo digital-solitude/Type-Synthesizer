@@ -149,6 +149,26 @@ function draw() {
             drawStory();
             break;
     }
+    drawDiagnostic();
+}
+
+function drawDiagnostic() {
+    fill(255);
+    textSize(12);
+    textAlign(LEFT, TOP);
+    let levelText = "";
+    switch (gameState) {
+        case "intro":
+            levelText = "Intro";
+            break;
+        case "story":
+            levelText = "Story";
+            break;
+    }
+    const x = width - 420;
+    const y = height - 20;
+    text("Level: " + levelText + " (change with keys 1-4)", x, y - 0);
+    text("Global Note Shift: " + globalNoteShift + "(change with UP/DOWN arrow keys)", x, y - 20);
 }
 
 function drawIntro() {
@@ -159,7 +179,7 @@ function drawIntro() {
     fill(255);
 
     // Set text properties
-    textSize(32);
+    textSize(textsize);
     textAlign(CENTER, CENTER);
 
     // Display the title
@@ -171,6 +191,13 @@ function drawIntro() {
 }
 
 let typedLetters = []; // Array to store TypedLetter instances
+
+function loadStory() {
+    letters = "";
+    typedLetters = [];
+    numberOfEnters = 0;
+
+}
 
 function drawStory() {
 
@@ -188,6 +215,7 @@ function drawStory() {
     fill(255, 255, 255, hintTextOpacity);
     // stroke(0);
     textAlign(LEFT, TOP);
+    textSize(textsize);
     text(sallyHintText, margin / 2, margin / 2, width - margin, height * 5);
 
     // // Figure out how many lines of text fit in the window (minus margins).
@@ -278,9 +306,19 @@ function keyPressed() {
         audioStarted = true;
     }
 
+    // if keys 1-4 are pressed, change the game state
+    if (key == '1') {
+        gameState = "intro";
+        console.log("1");
+    } else if (key == '2') {
+        gameState = "story";
+        loadStory();
+    }
+
     switch (gameState) {
         case "intro":
-            gameState = "story";
+            //gameState = "story";
+            handleIntroKeyPressed();
             break;
         case "story":
             handleStoryKeyPressed();
@@ -288,8 +326,14 @@ function keyPressed() {
     }
 }
 
-function handleStoryKeyPressed() {
+function handleIntroKeyPressed() {
+    // if any key is pressed other than 1-4, start the story
+    if (key !== '1' && key !== '2' && key !== '3' && key !== '4') {
+        gameState = "story";
+    }
+}
 
+function handleStoryKeyPressed() {
     if (key === 'Backspace') {
         // remove the last TypedLetter
         typedLetters.pop();
@@ -352,10 +396,16 @@ function handleStoryKeyTyped() {
 
 // Custom function to handle adding characters
 function keyTypedHandler(typedChar) {
+    // Prevent number keys from being added to letters when changing game state
+    if (typedChar >= '1' && typedChar <= '4') {
+        return;
+    }
 
     letters += typedChar;
 
     spawnVisualEffect(typedChar);  // Ensure the visual effect works
+
+    textSize(textsize);
 
     // Calculate the x and y position for the new TypedLetter
     let lastNewlineIndex = letters.lastIndexOf('\n');
@@ -483,7 +533,7 @@ class TypedLetter {
         this.letter = letter;
         this.x = x;
         this.y = y;
-        this.size = 32;
+        this.size = textsize;
         this.c = color(random(255), random(255), random(255));
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
