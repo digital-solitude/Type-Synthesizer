@@ -46,6 +46,8 @@ let audioStarted = false; // Flag to ensure we start the audio context only once
 let sallyHintText = "Hello, my name is sally, I'm a secretary.";
 let hintTextOpacity = 100; // Slightly higher opacity for readability
 let backgroundImg; // Will store the loaded image
+const percentageToStartWiggle = 0.5; // Percentage of the text box to start wiggling
+const chanceToWiggle = 0.001; // Chance to start wiggling if not already wiggling
 
 let gameState = "story"; // Game state: intro, tutorial, story, freeplay
 
@@ -166,9 +168,19 @@ function drawIntro() {
 let typedLetters = []; // Array to store TypedLetter instances
 
 function drawStory() {
+
+
+    // if the number of TypedLetters is greater than the percentageToStartWiggle of letters
+    if (typedLetters.length >= int(sallyHintText.length * percentageToStartWiggle)) {
+        // enable wiggling for all TypedLetters
+        for (let i = 0; i < typedLetters.length; i++) {
+            typedLetters[i].wiggle = true;
+        }
+    }
+
     transitionColors();
 
-    fill(255, 255, 255, 100);
+    fill(255, 255, 255, hintTextOpacity);
     // stroke(0);
     textAlign(LEFT, TOP);
     text(sallyHintText, margin / 2, margin / 2, width - margin, height * 5);
@@ -452,22 +464,38 @@ class TypedLetter {
         this.y = y;
         this.size = 32;
         this.c = color(random(255), random(255), random(255));
-        this.shakeOffset = 0;
+        this.shakeOffsetX = 0;
+        this.shakeOffsetY = 0;
+        this.wiggle = false;
+        this.wiggling = false;
+        this.startedWigglingTime = 0;
+
     }
 
     display() {
         noStroke();
         fill(this.c);
         textSize(this.size);
-        text(this.letter, this.x + this.shakeOffset, this.y);
+        text(this.letter, this.x + this.shakeOffsetX, this.y + this.shakeOffsetY);
+
+        // if not wiggling, small chance to start wiggling
+        if (!this.wiggling && this.wiggle && random(1) < chanceToWiggle) {
+            this.wiggling = true;
+            this.startedWigglingTime = millis();
+        }
     }
 
     update() {
-        // Randomly decide to shake
-        if (random(1) < 0.05) { // 5% chance to shake
-            this.shakeOffset = random(-2, 2); // Shake by a small amount
-        } else {
-            this.shakeOffset = 0; // No shake
+        // if wiggling, shake the letter
+        if (this.wiggling) {
+            let t = (millis() - this.startedWigglingTime) / 1000;
+            this.shakeOffsetX = sin(t * 50) * 3;
+            this.shakeOffsetY = cos(t * 50) * 3;
+            if (t > 0.5) {
+                this.wiggling = false;
+                this.shakeOffsetX = 0;
+                this.shakeOffsetY = 0;
+            }
         }
     }
 }
