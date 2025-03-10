@@ -48,6 +48,7 @@ let hintTextOpacity = 100; // Slightly higher opacity for readability
 let backgroundImg; // Will store the loaded image
 const percentageToStartWiggle = 0.5; // Percentage of the text box to start wiggling
 const chanceToWiggle = 0.001; // Chance to start wiggling if not already wiggling
+let preventTyping = false;
 
 let gameState = "intro"; // Game state: intro, tutorial, story, freeplay
 
@@ -306,23 +307,27 @@ function keyPressed() {
         audioStarted = true;
     }
 
-    // if keys 1-4 are pressed, change the game state
-    if (key == '1') {
-        gameState = "intro";
-        console.log("1");
-    } else if (key == '2') {
-        gameState = "story";
-        loadStory();
-    }
+    preventTyping = false; // Reset flag
 
     switch (gameState) {
         case "intro":
-            //gameState = "story";
             handleIntroKeyPressed();
             break;
         case "story":
             handleStoryKeyPressed();
             break;
+    }
+
+    // Change game state
+    if (key === '1') {
+        gameState = "intro";
+        preventTyping = true;
+        return;
+    } else if (key === '2') {
+        gameState = "story";
+        loadStory();
+        preventTyping = true;
+        return;
     }
 }
 
@@ -330,10 +335,13 @@ function handleIntroKeyPressed() {
     // if any key is pressed other than 1-4, start the story
     if (key !== '1' && key !== '2' && key !== '3' && key !== '4') {
         gameState = "story";
+        preventTyping = true; // Prevent typing the key that advances to story
     }
 }
 
 function handleStoryKeyPressed() {
+
+    console.log("story keyPressed: " + key);
     if (key === 'Backspace') {
         // remove the last TypedLetter
         typedLetters.pop();
@@ -379,17 +387,24 @@ function handleStoryKeyPressed() {
  * - Ignores "Enter" so we don't get literal "Enter" text
  */
 function keyTyped() {
+    if (preventTyping) {
+        preventTyping = false; // Reset for next keypress
+        return;
+    }
+
     switch (gameState) {
         case "intro":
             break;
         case "story":
-            handleStoryKeyTyped(); // Override p5.js keyTyped function to call keyTypedHandler()
+            handleStoryKeyTyped();
             break;
     }
 }
 
+
 function handleStoryKeyTyped() {
     if (key !== 'Enter' && key !== 'Return') {
+        //console.log("sending key to keyTypedHandler: " + key);
         keyTypedHandler(key);
     }
 }
@@ -397,7 +412,7 @@ function handleStoryKeyTyped() {
 // Custom function to handle adding characters
 function keyTypedHandler(typedChar) {
     // Prevent number keys from being added to letters when changing game state
-    if (typedChar >= '1' && typedChar <= '4') {
+    if (typedChar === '1' || typedChar === '2' || typedChar === '3' || typedChar === '4') {
         return;
     }
 
