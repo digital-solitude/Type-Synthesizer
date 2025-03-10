@@ -25,10 +25,25 @@
         canvas {
             display: block;
         }
+
+        .cornerGif {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 600px;
+            height: 400px;
+            z-index: 100;
+            background-image: url('typing.gif');
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
     </style>
 </head>
 
 <body>
+    <div class="cornerGif">
+
+    </div>
     <!-- Include our p5 sketch code in a separate file -->
     <script src="sketch.js"></script>
 </body>
