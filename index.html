@@ -21,15 +21,34 @@
             background-color: #f0f0f0;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         /* Make the canvas a block element to avoid scrollbars */
         canvas {
             display: block;
+            border: 10px solid pink;
+        }
+
+        .info {
+            /* top right corner */
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            background-image: url("info.png");
+            background-size: cover;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            z-index: 100;
         }
 
         .cornerGif {
             position: fixed;
-            bottom: 0;
-            left: 0;
+            bottom: 10px;
+            left: 10px;
             width: 600px;
             height: 400px;
             z-index: 100;
@@ -41,9 +60,15 @@
 </head>
 
 <body>
-    <div class="cornerGif">
-
-    </div>
+    <div class="cornerGif"></div>
+    <div class="info"></div>
+    <!-- capture click on info -->
+    <script>
+        document.querySelector('.info').addEventListener('click', () => {
+            // open info.html in new tab
+            window.open('info.html', '_blank');
+        });
+    </script>
     <!-- Include our p5 sketch code in a separate file -->
     <script src="sketch.js"></script>
 </body>
