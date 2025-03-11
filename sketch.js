@@ -50,7 +50,7 @@ const percentageToStartWiggle = 0.5; // Percentage of the text box to start wigg
 const chanceToWiggle = 0.001; // Chance to start wiggling if not already wiggling
 let preventTyping = false;
 
-let gameState = "intro"; // Game state: intro, tutorial, story, freeplay
+let gameState = "intro"; // Game state: intro, tutorial, freeplay
 
 /**
  * Sound Effects Variables
@@ -146,8 +146,8 @@ function draw() {
         case "intro":
             drawIntro();
             break;
-        case "story":
-            drawStory();
+        case "freeplay":
+            drawFreeplay();
             break;
     }
     drawDiagnostic();
@@ -162,8 +162,8 @@ function drawDiagnostic() {
         case "intro":
             levelText = "Intro";
             break;
-        case "story":
-            levelText = "Story";
+        case "freeplay":
+            levelText = "freeplay";
             break;
     }
     const x = width - 420;
@@ -193,15 +193,13 @@ function drawIntro() {
 
 let typedLetters = []; // Array to store TypedLetter instances
 
-function loadStory() {
+function loadFreeplay() {
     letters = "";
     typedLetters = [];
     numberOfEnters = 0;
-
 }
 
-function drawStory() {
-
+function drawFreeplay() {
 
     // if the number of TypedLetters is greater than the percentageToStartWiggle of letters
     if (typedLetters.length >= int(sallyHintText.length * percentageToStartWiggle)) {
@@ -313,7 +311,7 @@ function keyPressed() {
         case "intro":
             handleIntroKeyPressed();
             break;
-        case "story":
+        case "freeplay":
             handleStoryKeyPressed();
             break;
     }
@@ -324,8 +322,8 @@ function keyPressed() {
         preventTyping = true;
         return;
     } else if (key === '2') {
-        gameState = "story";
-        loadStory();
+        gameState = "freeplay";
+        loadFreeplay();
         preventTyping = true;
         return;
     }
@@ -334,7 +332,7 @@ function keyPressed() {
 function handleIntroKeyPressed() {
     // if any key is pressed other than 1-4, start the story
     if (key !== '1' && key !== '2' && key !== '3' && key !== '4') {
-        gameState = "story";
+        gameState = "freeplay";
         preventTyping = true; // Prevent typing the key that advances to story
     }
 }
@@ -395,7 +393,7 @@ function keyTyped() {
     switch (gameState) {
         case "intro":
             break;
-        case "story":
+        case "freeplay":
             handleStoryKeyTyped();
             break;
     }
@@ -555,7 +553,6 @@ class TypedLetter {
         this.wiggle = false;
         this.wiggling = false;
         this.startedWigglingTime = 0;
-
     }
 
     display() {
