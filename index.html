@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sally's Helpers</title>
 
     <!-- p5.js and p5.sound.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
@@ -19,6 +18,21 @@
             height: 100%;
             width: 100%;
             background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+
+        /* Added border 1cm from edge - made bolder and more magenta */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 1cm;
+            right: 1cm;
+            bottom: 1cm;
+            left: 1cm;
+            border: 2px solid #a31caf; /* Bolder, more magenta border */
+            pointer-events: none;
+            z-index: 999;
         }
 
         * {
@@ -28,49 +42,56 @@
         /* Make the canvas a block element to avoid scrollbars */
         canvas {
             display: block;
-            border: 10px solid pink;
         }
 
-        .info {
-            /* top right corner */
+        /* Page title replacing the info icon */
+        .page-title {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            color: #fff;
-            background-image: url("info.png");
-            background-size: cover;
-            width: 44px;
-            height: 44px;
+            top: 2cm;
+            right: 2cm;
+            font-family: Arial, sans-serif;
+            font-weight: 200; /* Light font weight */
+            font-size: 24px;
+            color: #333;
+            text-align: right;
             cursor: pointer;
             z-index: 100;
         }
 
-        .cornerGif {
+        .play-button {
             position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: 600px;
-            height: 400px;
-            z-index: 100;
-            background-image: url('typing.gif');
-            background-repeat: no-repeat;
-            background-size: contain;
+            top: 83%;
+            left: 90%;
+            transform: translate(-50%, -50%);
+            width: 200px; /* Keeping the larger size */
+            height: auto;
+            cursor: pointer;
+            z-index: 1000;
         }
     </style>
 </head>
 
 <body>
     <div class="cornerGif"></div>
-    <div class="info"></div>
-    <!-- capture click on info -->
+    
+    <!-- Page title replacing the info element -->
+    <div class="page-title">PHANTOMS/CITATIONS</div>
+    
+    <!-- capture click on title -->
     <script>
-        document.querySelector('.info').addEventListener('click', () => {
+        document.querySelector('.page-title').addEventListener('click', () => {
             // open info.html in new tab
             window.open('info.html', '_blank');
         });
     </script>
+    
     <!-- Include our p5 sketch code in a separate file -->
     <script src="sketch.js"></script>
+    
+    <!-- Play button as an image in the center -->
+    <a href="index.html">
+        <img src="background.png" alt="Play" class="play-button">
+    </a>
 </body>
 
 </html>

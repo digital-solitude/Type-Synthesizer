@@ -43,12 +43,13 @@ let cursorX = 0;         // Tracks the horizontal cursor position (not currently
 let boxWidth;            // Width of the text box (calculated in setup)
 let manualOffsetVariable = 0; // Extra variable to control offset if needed
 let audioStarted = false; // Flag to ensure we start the audio context only once
-let sallyHintText = "Hello, my name is sally, I'm a secretary.";
+let sallyHintText = "“Before there were computers - indeed before there were any technologies - people were just in the world. They experienced the natural world in three dimensions and they moved around with six degrees of freedom. They could touch and manipulate things directly; there were no keyboards and no mice. A good digital interface gets us as close as possible to that natural state, allowing us to interact by movement and direct manipulation.” Gomala, Diane, and Jay Bolter. 2005. Windows and Mirrors: Interaction Design, Digital Art, and the Myth of Transparency";
 let hintTextOpacity = 100; // Slightly higher opacity for readability
 let backgroundImg; // Will store the loaded image
-const percentageToStartWiggle = 0.5; // Percentage of the text box to start wiggling
-const chanceToWiggle = 0.001; // Chance to start wiggling if not already wiggling
+const percentageToStartWiggle = 0.005; // Percentage of the text box to start wiggling
+const chanceToWiggle = 0.0001; // Chance to start wiggling if not already wiggling
 let preventTyping = false;
+let currentGreenShade; // Holds the current shade of green for all letters
 
 let gameState = "intro"; // Game state: intro, tutorial, freeplay
 
@@ -114,6 +115,7 @@ function preload() {
 function setup() {
     // Creates a canvas that fills the entire browser window
     createCanvas(windowWidth, windowHeight);
+    currentGreenShade = color(25, 150, 25);
 
     // Set text size and font (we'll use a monospace font: Consolas)
     textSize(textsize);
@@ -168,8 +170,8 @@ function drawDiagnostic() {
     }
     const x = width - 420;
     const y = height - 20;
-    text("Level: " + levelText + " (change with keys 1-4)", x, y - 0);
-    text("Global Note Shift: " + globalNoteShift + "(change with UP/DOWN arrow keys)", x, y - 20);
+    //text("Level: " + levelText + " (change with keys 1-4)", x, y - 0);
+    //text("Global Note Shift: " + globalNoteShift + "(change with UP/DOWN arrow keys)", x, y - 20);
 }
 
 function drawIntro() {
@@ -184,11 +186,11 @@ function drawIntro() {
     textAlign(CENTER, CENTER);
 
     // Display the title
-    text("Sally's Helpers", width / 2, height / 2 - 50);
+ //  text("Sally's Helpers", width / 2, height / 2 - 50);
 
     // Display instructions
-    textSize(24);
-    text("Press any key to start", width / 2, height / 2 + 50);
+    textSize(20);
+    text("press any key", width / 2 +760, height / 2 + 190);
 }
 
 let typedLetters = []; // Array to store TypedLetter instances
@@ -215,7 +217,7 @@ function drawFreeplay() {
     // stroke(0);
     textAlign(LEFT, TOP);
     textSize(textsize);
-    text(sallyHintText, margin / 2, margin / 2, width - margin, height * 5);
+    text(sallyHintText, margin / 2+60, margin / 2+60, width - margin, height * 5);
 
     // // Figure out how many lines of text fit in the window (minus margins).
     // let linesPossible = (height - margin) / leading;
@@ -423,8 +425,8 @@ function keyTypedHandler(typedChar) {
     // Calculate the x and y position for the new TypedLetter
     let lastNewlineIndex = letters.lastIndexOf('\n');
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
-    let x = margin / 2 + textWidth(lineText.slice(0, -1));
-    let y = margin / 2 + numberOfEnters * leading;
+    let x = margin / 2 +60+ textWidth(lineText.slice(0, -1));
+    let y = margin / 2 +60+ numberOfEnters * leading;
     typedLetters.push(new TypedLetter(typedChar, x, y));
 
     console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
@@ -497,14 +499,7 @@ function windowResized() {
  * - Creates a new particle each time a character is typed.
  */
 function spawnVisualEffect(key) {
-    let p = {
-        x: random(margin, width - margin),
-        y: random(textboxOffset - 20, textboxOffset + 50),
-        size: random(10, 30),
-        life: 255, // fade-out timer
-        c: color(random(255), random(255), random(255))
-    };
-    typedParticles.push(p);
+    
 }
 
 /**
@@ -547,7 +542,7 @@ class TypedLetter {
         this.x = x;
         this.y = y;
         this.size = textsize;
-        this.c = color(random(255), random(255), random(255));
+        this.c = currentGreenShade; // Use the global current green shade
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
         this.wiggle = false;
@@ -562,7 +557,7 @@ class TypedLetter {
         text(this.letter, this.x + this.shakeOffsetX, this.y + this.shakeOffsetY);
 
         // if not wiggling, small chance to start wiggling
-        if (!this.wiggling && this.wiggle && random(1) < chanceToWiggle) {
+        if (!this.wiggling && this.wiggle && random(2) < chanceToWiggle) {
             this.wiggling = true;
             this.startedWigglingTime = millis();
         }
@@ -572,9 +567,9 @@ class TypedLetter {
         // if wiggling, shake the letter
         if (this.wiggling) {
             let t = (millis() - this.startedWigglingTime) / 1000;
-            this.shakeOffsetX = sin(t * 50) * 3;
-            this.shakeOffsetY = cos(t * 50) * 3;
-            if (t > 0.5) {
+            this.shakeOffsetX = sin(t * 20) * 3;
+            this.shakeOffsetY = cos(t * 20) * 3;
+            if (t > 0.2) {
                 this.wiggling = false;
                 this.shakeOffsetX = 0;
                 this.shakeOffsetY = 0;
