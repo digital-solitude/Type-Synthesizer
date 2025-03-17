@@ -148,6 +148,14 @@ function keyTypedHandler(typedChar) {
     // y position = top margin + #enters * line spacing
     let y = margin / 2 + 60 + numberOfEnters * leading;
 
+    // Check if the text width exceeds the max width percentage
+    if (textWidth(lineText) > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+        letters += '\n';
+        numberOfEnters++;
+        x = margin / 2 + 60;
+        y += leading;
+    }
+
     typedLetters.push(new TypedLetter(typedChar, x, y));
     // console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
 }

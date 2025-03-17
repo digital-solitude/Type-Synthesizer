@@ -21,6 +21,7 @@ let letters = "";        // A string to store typed text
 let typedLetters = [];   // Array to store TypedLetter instances
 let numberOfEnters = 0;  // Tracks how many times the user pressed Enter
 let preventTyping = false;
+const MAX_TEXT_WIDTH_PERCENTAGE = 0.8;
 
 // Text styling
 let textsize = 32;
@@ -54,6 +55,7 @@ const chanceToWiggle = 0.0001;
 
 // Cursor object
 let cursor;
+let cursorCeiling = 0;
 
 // Note shifting
 let globalNoteShift = 0;

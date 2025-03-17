@@ -74,6 +74,8 @@ function loadFreeplay() {
     letters = "";
     typedLetters = [];
     numberOfEnters = 0;
+
+    cursorCeiling = margin / 2 + 60;
 }
 
 function drawFreeplay() {
@@ -106,6 +108,11 @@ function drawFreeplay() {
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
     let cursorX = margin / 2 + 60 + textWidth(lineText);
     let cursorY = margin / 2 + 60 + numberOfEnters * leading;
+
+    // do not let cursor go above the ceiling
+    if (cursorY < cursorCeiling) {
+        cursorY = cursorCeiling;
+    }
 
     // Update & display the cursor
     cursor.update();
