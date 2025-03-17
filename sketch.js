@@ -186,11 +186,11 @@ function drawIntro() {
     textAlign(CENTER, CENTER);
 
     // Display the title
- //  text("Sally's Helpers", width / 2, height / 2 - 50);
+    //  text("Sally's Helpers", width / 2, height / 2 - 50);
 
     // Display instructions
     textSize(20);
-    text("press any key", width / 2 +760, height / 2 + 190);
+    text("press any key", width / 2 + 760, height / 2 + 190);
 }
 
 let typedLetters = []; // Array to store TypedLetter instances
@@ -217,7 +217,7 @@ function drawFreeplay() {
     // stroke(0);
     textAlign(LEFT, TOP);
     textSize(textsize);
-    text(sallyHintText, margin / 2+60, margin / 2+60, width - margin, height * 5);
+    text(sallyHintText, margin / 2 + 60, margin / 2 + 60, width - margin, height * 5);
 
     // // Figure out how many lines of text fit in the window (minus margins).
     // let linesPossible = (height - margin) / leading;
@@ -386,6 +386,8 @@ function handleStoryKeyPressed() {
  * - Spawns a visual effect for typed characters
  * - Ignores "Enter" so we don't get literal "Enter" text
  */
+let startedTyping = false;
+let timeStarted = 0;
 function keyTyped() {
     if (preventTyping) {
         preventTyping = false; // Reset for next keypress
@@ -396,6 +398,18 @@ function keyTyped() {
         case "intro":
             break;
         case "freeplay":
+            // diagnostic to capture keys to console with timing
+            if (!startedTyping) {
+                console.log("started typing");
+                startedTyping = true;
+                timeStarted = millis();
+                // log the key and the timing
+                console.log("key: " + key + ", timing: " + 0);
+            } else {
+                let timeNow = millis();
+                console.log("key: " + key + ", timing: " + (timeNow - timeStarted));
+                timeStarted = timeNow;
+            }
             handleStoryKeyTyped();
             break;
     }
@@ -425,11 +439,11 @@ function keyTypedHandler(typedChar) {
     // Calculate the x and y position for the new TypedLetter
     let lastNewlineIndex = letters.lastIndexOf('\n');
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
-    let x = margin / 2 +60+ textWidth(lineText.slice(0, -1));
-    let y = margin / 2 +60+ numberOfEnters * leading;
+    let x = margin / 2 + 60 + textWidth(lineText.slice(0, -1));
+    let y = margin / 2 + 60 + numberOfEnters * leading;
     typedLetters.push(new TypedLetter(typedChar, x, y));
 
-    console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
+    // console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
 }
 
 /**
@@ -499,7 +513,7 @@ function windowResized() {
  * - Creates a new particle each time a character is typed.
  */
 function spawnVisualEffect(key) {
-    
+
 }
 
 /**

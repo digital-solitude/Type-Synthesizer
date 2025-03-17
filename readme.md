@@ -1,4 +1,4 @@
-Collecting workspace information# Type Synthesizer
+# Type Synthesizer
 
 This project is a simple synthesizer built using the p5.js library and the p5.sound library. It allows users to play musical notes by typing specific keys on their keyboard. The typed keys are also displayed on the screen.
 
