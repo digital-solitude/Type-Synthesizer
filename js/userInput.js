@@ -37,6 +37,11 @@ function keyPressed() {
         preventTyping = true;
         return;
     } else if (key === '2') {
+        gameState = "guided";
+        loadGuided();
+        preventTyping = true;
+        return;
+    } else if (key === '3') {
         gameState = "freeplay";
         loadFreeplay();
         preventTyping = true;
@@ -78,7 +83,8 @@ let timeStarted = 0;
 function handleIntroKeyPressed() {
     // If any key is pressed (other than 1..4) => go to freeplay
     if (key !== '1' && key !== '2' && key !== '3' && key !== '4') {
-        gameState = "freeplay";
+        gameState = "guided";
+        loadGuided();
         preventTyping = true;
     }
 }

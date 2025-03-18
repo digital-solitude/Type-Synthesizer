@@ -7,7 +7,7 @@
  ******************************************************/
 
 // Game state
-let gameState = "intro"; // "intro", "freeplay", etc.
+let gameState = "intro"; // "intro", "guided", "freeplay"
 
 // Audio
 let synth;               // p5.PolySynth object that generates sound
@@ -16,6 +16,13 @@ let delay;               // p5.Delay
 let distortion;          // p5.Distortion
 let audioStarted = false; // Add this line to declare the variable
 let lastNote = null; // Add this line to declare the variable
+
+// Guided mode variables
+let guidedStartTime = 0;        // When the guided mode started
+let guidedCurrentNoteIndex = 0; // Current note being played in the sequence
+let guidedNextNoteTime = 0;     // When to play the next note
+let guidedSequenceComplete = false; // Whether the sequence has finished playing
+let guidedEndTime = 0;          // When the guided mode should end
 
 // Typed text & display
 let letters = "";        // A string to store typed text
@@ -71,7 +78,7 @@ let distortionAmount = 0.0;
 let typedParticles = [];
 
 // Mapping of keyboard keys to notes
-let notesMap = {
+const notesMap = {
     'q': 'F3', 'w': 'G3', 'e': 'A3', 'r': 'B3', 't': 'C4', 'y': 'D4', 'u': 'E4',
     'i': 'F4', 'o': 'G4', 'p': 'A4', 'a': 'B4', 's': 'C5', 'd': 'D5', 'f': 'E5',
     'g': 'F5', 'h': 'G5', 'j': 'A5', 'k': 'B5', 'l': 'C6', 'z': 'D6', 'x': 'E6',
@@ -81,3 +88,8 @@ let notesMap = {
     'G': 'F#5', 'H': 'G#5', 'J': 'A#5', 'K': 'B5', 'L': 'C#6', 'Z': 'D#6', 'X': 'E6',
     'C': 'F#6', 'V': 'G#6', 'B': 'A#6', 'N': 'B6', 'M': 'C#7',
 };
+
+// note sequence with associated timing
+const guidedNoteSequence = [
+    ['T', 0.5], ['e', 0.25], ['s', 0.25], ['t', 0.5], ['i', 1.0], ['n', 0.5], ['g', 0.5]
+];

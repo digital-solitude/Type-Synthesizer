@@ -52,6 +52,9 @@ function draw() {
         case "intro":
             drawIntro();
             break;
+        case "guided":
+            drawGuided();
+            break;
         case "freeplay":
             drawFreeplay();
             break;
@@ -68,6 +71,98 @@ function drawIntro() {
     // Simple prompt
     textSize(20);
     text("press any key", width / 2 + 760, height / 2 + 190);
+}
+
+function loadGuided() {
+    // Initialize guided mode variables
+    guidedStartTime = millis();
+    guidedCurrentNoteIndex = 0;
+    guidedNextNoteTime = guidedStartTime + 2000; // Wait 2 seconds before starting
+    guidedSequenceComplete = false;
+    guidedEndTime = 0;
+
+    // Reset guided mode text display
+    guidedTypedText = "";
+    guidedLetterX = margin / 2 + 60;
+    guidedLetterY = margin / 2 + 60;
+
+    // Clear any existing typed letters
+    typedLetters = [];
+    letters = "";
+    numberOfEnters = 0;
+}
+
+function drawGuided() {
+    background(0);
+
+    // Display existing typed letters (same as freeplay)
+    for (let i = 0; i < typedLetters.length; i++) {
+        typedLetters[i].update();
+        typedLetters[i].display();
+    }
+
+    // Display cursor at current position
+    cursor.update();
+    cursor.display(guidedLetterX, guidedLetterY);
+
+    const currentTime = millis();
+
+    // Play through the note sequence
+    if (!guidedSequenceComplete) {
+        if (guidedCurrentNoteIndex < guidedNoteSequence.length) {
+            // Time to play the next note?
+            if (currentTime >= guidedNextNoteTime) {
+                // Get the character and duration
+                const [char, duration] = guidedNoteSequence[guidedCurrentNoteIndex];
+
+                // Add character to display text
+                guidedTypedText += char;
+                letters += char;
+
+                // Create a TypedLetter for visualization
+                textSize(textsize);
+                typedLetters.push(new TypedLetter(char, guidedLetterX, guidedLetterY));
+
+                // Update position for next letter
+                guidedLetterX += textWidth(char);
+
+                // Check if we need to wrap to next line
+                if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                    guidedLetterX = margin / 2 + 60;
+                    guidedLetterY += leading;
+                    letters += '\n';
+                    numberOfEnters++;
+                }
+
+                // If the character is in the notes map, play the note
+                if (char in notesMap) {
+                    playNote(notesMap[char]);
+                }
+
+                // Set up for the next note
+                guidedCurrentNoteIndex++;
+                guidedNextNoteTime = currentTime + (duration * 1000);
+            }
+        } else {
+            // All notes have been played
+            guidedSequenceComplete = true;
+            guidedEndTime = currentTime + 3000; // Wait 3 more seconds before continuing
+        }
+    }
+
+    // Handle the waiting period after the sequence is complete
+    if (guidedSequenceComplete) {
+        fill(255);
+        textSize(20);
+        textAlign(CENTER, CENTER);
+        text("Sequence complete! Moving to freeplay mode...", width / 2, height / 2 + 100);
+
+        // After 3-second wait, advance to freeplay
+        if (currentTime >= guidedEndTime) {
+            gameState = "freeplay";
+            loadFreeplay();
+        }
+    }
 }
 
 function loadFreeplay() {
@@ -172,8 +267,11 @@ function drawDiagnostic() {
         case "intro":
             levelText = "Intro";
             break;
+        case "guided":
+            levelText = "Guided";
+            break;
         case "freeplay":
-            levelText = "freeplay";
+            levelText = "Freeplay";
             break;
     }
     const x = width - 420;
