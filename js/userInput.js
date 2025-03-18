@@ -114,8 +114,14 @@ function handleStoryKeyPressed() {
     else if (key in notesMap) {
         if (synth) {
             playNote(notesMap[key]);
+            lastNote = notesMap[key]; // Store the last note played
         } else {
             console.error("synth is undefined");
+        }
+    }
+    else if (key === ',' || key === '.') {
+        if (lastNote && synth) {
+            playNote(lastNote); // Replay the last note
         }
     }
 }

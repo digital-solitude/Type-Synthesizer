@@ -15,6 +15,7 @@ let envelope;            // p5.Envelope
 let delay;               // p5.Delay
 let distortion;          // p5.Distortion
 let audioStarted = false; // Add this line to declare the variable
+let lastNote = null; // Add this line to declare the variable
 
 // Typed text & display
 let letters = "";        // A string to store typed text
