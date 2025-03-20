@@ -204,7 +204,7 @@ function drawFreeplay() {
     // Calculate cursor position
     let lastNewlineIndex = letters.lastIndexOf('\n');
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
-    console.log("lineText: " + lineText);
+    //console.log("lineText: " + lineText);
     let cursorX = margin / 2 + 60 + textWidth(lineText);
     let cursorY = margin / 2 + 60 + numberOfEnters * leading;
 
