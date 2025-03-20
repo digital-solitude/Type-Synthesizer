@@ -20,6 +20,9 @@ function preload() {
 }
 
 function setup() {
+    
+    appendToArenaBlock('test'); 
+
     // Creates a canvas that fills the entire browser window
     createCanvas(windowWidth, windowHeight);
     currentGreenShade = color(25, 150, 25);
@@ -284,3 +287,17 @@ function drawDiagnostic() {
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
+
+function appendToArenaBlock(text) {
+    fetch('arena.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ append_text: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log('Updated block data:', data);
+    })
+    .catch(err => console.error('Error updating block:', err));
+}
+  

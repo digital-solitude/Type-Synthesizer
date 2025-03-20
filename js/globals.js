@@ -51,8 +51,13 @@ let currentGreenShade;
 let hintTextOpacity = 100;
 
 // Big chunk of text
-let sallyHintText =
-    "“Before there were computers - indeed before there were any technologies - people were just in the world. They experienced the natural world in three dimensions and they moved around with six degrees of freedom. They could touch and manipulate things directly; there were no keyboards and no mice. A good digital interface gets us as close as possible to that natural state, allowing us to interact by movement and direct manipulation.” Gomala, Diane, and Jay Bolter. 2005. Windows and Mirrors: Interaction Design, Digital Art, and the Myth of Transparency";
+let sallyHintText = 
+[
+    "“Before there were computers - indeed before there were any technologies - people were just in the world. They experienced the natural world in three dimensions and they moved around with six degrees of freedom. They could touch and manipulate things directly; there were no keyboards and no mice. A good digital interface gets us as close as possible to that natural state, allowing us to interact by movement and direct manipulation.” Gomala, Diane, and Jay Bolter. 2005. Windows and Mirrors: Interaction Design, Digital Art, and the Myth of Transparency",
+    "testing line 2",
+    "testing line 3"
+]
+sallyHintText = []; // blank it out for now
 
 // Background image
 let backgroundImg;
