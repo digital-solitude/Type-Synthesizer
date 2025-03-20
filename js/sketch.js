@@ -193,7 +193,7 @@ function drawFreeplay() {
     fill(255, 255, 255, hintTextOpacity);
     textAlign(LEFT, TOP);
     textSize(textsize);
-    text(sallyHintText, margin / 2 + 60, margin / 2 + 60, width - margin, height * 5);
+    text(sallyHintText, margin / 2 + 60, margin / 2 + 60 - scrollOffset, width - margin, height * 5);
 
     // Update & display typed letters
     for (let i = 0; i < typedLetters.length; i++) {
@@ -201,9 +201,10 @@ function drawFreeplay() {
         typedLetters[i].display();
     }
 
-    // Cursor position calculation
+    // Calculate cursor position
     let lastNewlineIndex = letters.lastIndexOf('\n');
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
+    console.log("lineText: " + lineText);
     let cursorX = margin / 2 + 60 + textWidth(lineText);
     let cursorY = margin / 2 + 60 + numberOfEnters * leading;
 
@@ -214,7 +215,7 @@ function drawFreeplay() {
 
     // Update & display the cursor
     cursor.update();
-    cursor.display(cursorX, cursorY);
+    cursor.display(cursorX, cursorY - scrollOffset);
 
     // Render typed "particles"
     renderVisualEffects();
@@ -287,6 +288,7 @@ function drawDiagnostic() {
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
+
 
 function appendToArenaBlock(text) {
     fetch('arena.php', {

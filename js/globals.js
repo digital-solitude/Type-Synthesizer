@@ -36,6 +36,8 @@ let textsize = 32;
 let margin = 100;
 let leading = textsize * 1.2;
 let manualOffsetVariable = 0;
+let scrollOffset = 0;  // Track how far we've scrolled up
+const SCROLL_THRESHOLD = 0.85;  // When to start scrolling (85% of screen height)
 
 // For color transitions
 let bgColorStart = [50, 50, 50];      // Dark grey

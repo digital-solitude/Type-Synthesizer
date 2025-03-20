@@ -92,13 +92,24 @@ function handleIntroKeyPressed() {
 function handleStoryKeyPressed() {
     console.log("story keyPressed: " + key);
     if (key === 'Backspace') {
-        // Remove last TypedLetter
-        typedLetters.pop();
-        // Remove last character from letters
-        letters = letters.slice(0, -1);
-        // If last character was newline
-        if (letters.slice(-1) === '\n') {
+        // If we're at the start of a line (after a newline)
+        if (letters.length > 0 && letters.slice(-1) === '\n') {
+            // Just remove the newline
+            letters = letters.slice(0, -1);
             numberOfEnters--;
+            
+            // Recalculate scroll when moving up a line
+            if (typedLetters.length > 0) {
+                let lastLetter = typedLetters[typedLetters.length - 1];
+                let currentY = lastLetter.y - scrollOffset;
+                if (currentY < height * SCROLL_THRESHOLD) {
+                    scrollOffset = Math.max(0, lastLetter.y - (height * SCROLL_THRESHOLD));
+                }
+            }
+        } else {
+            // Remove last TypedLetter and character
+            typedLetters.pop();
+            letters = letters.slice(0, -1);
         }
     }
     else if (keyCode === UP_ARROW) {
@@ -116,6 +127,16 @@ function handleStoryKeyPressed() {
     else if (key === 'Enter' || key === 'Return') {
         letters += "\n";
         numberOfEnters++;
+        
+        // Calculate new cursor position after Enter
+        let newY = margin / 2 + 60 + numberOfEnters * leading;
+        let currentY = newY - scrollOffset;
+        
+        // Check if we need to scroll
+        if (currentY > height * SCROLL_THRESHOLD) {
+            let scrollAmount = currentY - (height * SCROLL_THRESHOLD);
+            scrollOffset += scrollAmount;
+        }
     }
     else if (key in notesMap) {
         if (synth) {
@@ -168,6 +189,14 @@ function keyTypedHandler(typedChar) {
         y += leading;
     }
 
+    // Check if we need to scroll
+    let currentY = y - scrollOffset;
+    if (currentY > height * SCROLL_THRESHOLD) {
+        // Calculate how much we need to scroll
+        let scrollAmount = currentY - (height * SCROLL_THRESHOLD);
+        scrollOffset += scrollAmount;
+    }
+
+    // Create the TypedLetter at the calculated position
     typedLetters.push(new TypedLetter(typedChar, x, y));
-    // console.log(`Added letter: ${typedChar}, x: ${x}, y: ${y}`);
 }

@@ -23,7 +23,7 @@ class TypedLetter {
         noStroke();
         fill(this.c);
         textSize(this.size);
-        text(this.letter, this.x + this.shakeOffsetX, this.y + this.shakeOffsetY);
+        text(this.letter, this.x + this.shakeOffsetX, this.y + this.shakeOffsetY - scrollOffset);
 
         // If not wiggling, small chance to start
         if (!this.wiggling && this.wiggle && random(2) < chanceToWiggle) {
