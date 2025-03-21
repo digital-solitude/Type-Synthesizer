@@ -7,47 +7,79 @@
  ******************************************************/
 
 function preload() {
-    // Attempt to load your background image
-    backgroundImg = loadImage('background.png',
-        img => {
-            console.log("Image loaded successfully");
-        },
-        err => {
-            console.error("Error loading image:", err);
-            backgroundImg = null;
-        }
-    );
+
 }
 
 function setup() {
-    
     appendToArenaBlock('test'); 
 
     // Creates a canvas that fills the entire browser window
     createCanvas(windowWidth, windowHeight);
-    currentGreenShade = color(25, 150, 25);
 
     // Set text properties
     textSize(textsize);
     textFont('Consolas');
     textLeading(leading);
 
+    // Initialize color
+    letterColor = color(25, 150, 25);
+
     // p5.PolySynth
-    synth = new p5.PolySynth();
+    try {
+        if (typeof p5.PolySynth === 'undefined') {
+            console.error('p5.sound library not loaded properly. PolySynth is undefined.');
+            alert('Audio components failed to load. Please refresh the page or check console for errors.');
+        } else {
+            synth = new p5.PolySynth();
+            console.log('Synthesizer initialized successfully');
+        }
+    } catch (e) {
+        console.error('Error initializing synthesizer:', e);
+        alert('Audio components failed to load. Please refresh the page or check console for errors.');
+    }
 
     // Envelope
-    envelope = new p5.Envelope();
-    envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
+    try {
+        if (typeof p5.Envelope !== 'undefined') {
+            envelope = new p5.Envelope();
+            envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
+        } else {
+            console.error('p5.sound library not loaded properly. Envelope is undefined.');
+        }
+    } catch (e) {
+        console.error('Error initializing envelope:', e);
+    }
 
     // Delay
-    delay = new p5.Delay();
+    try {
+        if (typeof p5.Delay !== 'undefined') {
+            delay = new p5.Delay();
+        } else {
+            console.error('p5.sound library not loaded properly. Delay is undefined.');
+        }
+    } catch (e) {
+        console.error('Error initializing delay:', e);
+    }
 
     // Distortion
-    distortion = new p5.Distortion(0.0, '2x');
-    distortion.process(synth.output);
+    try {
+        if (typeof p5.Distortion !== 'undefined') {
+            distortion = new p5.Distortion(0.0, '2x');
+            if (synth && synth.output) {
+                distortion.process(synth.output);
+            }
+        } else {
+            console.error('p5.sound library not loaded properly. Distortion is undefined.');
+        }
+    } catch (e) {
+        console.error('Error initializing distortion:', e);
+    }
 
     // Create the blinking cursor
     cursor = new Cursor();
+
+    // calculate border inset
+    borderInsetPixels = cmToPixels(1);
 }
 
 function draw() {
@@ -65,15 +97,32 @@ function draw() {
     drawDiagnostic();
 }
 
+function drawBorder(backgroundColor) {
+    // draw background color rectangles so that outside the border is the background color
+    fill(backgroundColor);
+    noStroke();
+    rect(0, 0, width, borderInsetPixels);
+    rect(0, 0, borderInsetPixels, height);
+    rect(width - borderInsetPixels, 0, borderInsetPixels, height);
+    rect(0, height - borderInsetPixels, width, borderInsetPixels);
+
+    // draw a border around the screen, 2px wide #a31caf, inset from the edges by 1cm
+    noFill();
+    stroke(163, 28, 175);
+    strokeWeight(2);
+    rect(borderInsetPixels, borderInsetPixels, width - borderInsetPixels * 2, height - borderInsetPixels * 2);
+}
+
 function drawIntro() {
     background(0);
-    fill(255);
-    textSize(textsize);
-    textAlign(CENTER, CENTER);
 
+    drawBorder(color(0, 0, 0));
+
+    fill(255);
+    textAlign(CENTER, CENTER);
     // Simple prompt
     textSize(20);
-    text("press any key", width / 2 + 760, height / 2 + 190);
+    text("press any key", width / 2, height / 2);
 }
 
 function loadGuided() {
@@ -97,6 +146,8 @@ function loadGuided() {
 
 function drawGuided() {
     background(0);
+
+    drawBorder(color(0, 0, 0));
 
     // Display existing typed letters (same as freeplay)
     for (let i = 0; i < typedLetters.length; i++) {
@@ -172,28 +223,38 @@ function loadFreeplay() {
     letters = "";
     typedLetters = [];
     numberOfEnters = 0;
+    scrollOffset = 0;
+    currentHintTextIndex = 0;  // Reset to the first hint text
 
     cursorCeiling = margin / 2 + 60;
+    
+    // Set the initial hint text position
+    hintTextPositions = [margin / 2 + 60]; // Start the first hint at the top margin
 }
 
 function drawFreeplay() {
-    noStroke();
+
+    // Gradually transition colors
+    let { backgroundColor, textColor } = transitionColors();
+
+    background(backgroundColor);
+    drawBorder(backgroundColor);
 
     // If enough letters are typed, enable wiggling
-    if (typedLetters.length >= int(sallyHintText.length * percentageToStartWiggle)) {
-        for (let i = 0; i < typedLetters.length; i++) {
-            typedLetters[i].wiggle = true;
+    if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
+        if (typedLetters.length >= int(sallyHintText[currentHintTextIndex].length * percentageToStartWiggle)) {
+            for (let i = 0; i < typedLetters.length; i++) {
+                typedLetters[i].wiggle = true;
+            }
         }
     }
 
-    // Gradually transition background & text colors
-    transitionColors();
-
-    // Print out the big text chunk in the background
-    fill(255, 255, 255, hintTextOpacity);
-    textAlign(LEFT, TOP);
-    textSize(textsize);
-    text(sallyHintText, margin / 2 + 60, margin / 2 + 60 - scrollOffset, width - margin, height * 5);
+    // Calculate position for the current hint text
+    // It should be at the current cursor position
+    let hintTextY = margin / 2 + 60 + numberOfEnters * leading;
+    
+    // Display all hint texts - completed ones and the current one being typed
+    displayHintTexts();
 
     // Update & display typed letters
     for (let i = 0; i < typedLetters.length; i++) {
@@ -217,8 +278,22 @@ function drawFreeplay() {
     cursor.update();
     cursor.display(cursorX, cursorY - scrollOffset);
 
-    // Render typed "particles"
-    renderVisualEffects();
+
+}
+
+// Function to display all hint texts
+function displayHintTexts() {
+    noStroke();
+    fill(255, 255, 255, hintTextOpacity);
+    textAlign(LEFT, TOP);
+    textSize(textsize);
+    
+    // Display the current hint text only
+    let currentHintY = margin / 2 + 60 + numberOfEnters * leading;
+    text(sallyHintText[currentHintTextIndex], margin / 2 + 60, currentHintY - scrollOffset, width - margin, height * 5);
+    
+    // We don't need to display completed hint texts separately since they're already visible as typed letters
+    // The previous version was causing duplicate text to appear
 }
 
 function transitionColors() {
@@ -256,9 +331,12 @@ function transitionColors() {
             textColor[2] = Math.min(255, textColor[2] * 1.5);
         }
     }
-
-    background(bgColor[0], bgColor[1], bgColor[2]);
-    fill(textColor[0], textColor[1], textColor[2]);
+    
+    // Return the calculated colors
+    return {
+        backgroundColor: color(bgColor[0], bgColor[1], bgColor[2]),
+        textColor: color(textColor[0], textColor[1], textColor[2])
+    };
 }
 
 function drawDiagnostic() {
@@ -303,3 +381,15 @@ function appendToArenaBlock(text) {
     .catch(err => console.error('Error updating block:', err));
 }
   
+
+function cmToPixels(cm) {
+    // Get screen DPI using a hidden div method
+    let div = document.createElement("div");
+    div.style.width = "1in"; // Set width to 1 inch
+    div.style.visibility = "hidden"; // Hide the element
+    document.body.appendChild(div);
+    let dpi = div.offsetWidth; // Measure pixel width of 1 inch
+    document.body.removeChild(div); // Clean up
+
+    return cm * (dpi / 2.54); // Convert cm to pixels
+}

@@ -20,19 +20,6 @@ body {
     padding: 0;
 }
 
-/* Border around the edge of the page */
-body::before {
-    content: '';
-    position: fixed;
-    top: 1cm;
-    right: 1cm;
-    bottom: 1cm;
-    left: 1cm;
-    border: 2px solid #a31caf;
-    pointer-events: none;
-    z-index: 999;
-}
-
 /* Canvas styles */
 canvas {
     display: block;
@@ -208,4 +195,20 @@ p {
     text-align: center;
     background-color: #282c34;
     color: white;
+}
+
+#continue-anyway {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #a31caf;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+#continue-anyway:hover {
+    background-color: #8a1690;
 }

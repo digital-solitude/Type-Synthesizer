@@ -11,7 +11,7 @@ class TypedLetter {
         this.x = x;
         this.y = y;
         this.size = textsize;
-        this.c = currentGreenShade;
+        this.c = letterColor;
         this.shakeOffsetX = 0;
         this.shakeOffsetY = 0;
         this.wiggle = false;
