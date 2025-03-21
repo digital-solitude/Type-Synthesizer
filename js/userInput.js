@@ -90,7 +90,7 @@ function handleIntroKeyPressed() {
 }
 
 function handleStoryKeyPressed() {
-    console.log("story keyPressed: " + key);
+    // console.log("story keyPressed: " + key);
     if (key === 'Backspace') {
         // Prevent backspacing past a completed hint text section
         if (letters.length > 0) {
