@@ -116,13 +116,13 @@ function drawBorder(backgroundColor) {
 function drawIntro() {
     background(0);
 
-    drawBorder(color(0, 0, 0));
-
     fill(255);
     textAlign(CENTER, CENTER);
     // Simple prompt
     textSize(20);
     text("press any key", width / 2, height / 2);
+
+    drawBorder(color(0, 0, 0));
 }
 
 function loadGuided() {
@@ -146,8 +146,6 @@ function loadGuided() {
 
 function drawGuided() {
     background(0);
-
-    drawBorder(color(0, 0, 0));
 
     // Display existing typed letters (same as freeplay)
     for (let i = 0; i < typedLetters.length; i++) {
@@ -217,6 +215,9 @@ function drawGuided() {
             loadFreeplay();
         }
     }
+
+    drawBorder(color(0, 0, 0));
+
 }
 
 function loadFreeplay() {
@@ -238,7 +239,6 @@ function drawFreeplay() {
     let { backgroundColor, textColor } = transitionColors();
 
     background(backgroundColor);
-    drawBorder(backgroundColor);
 
     // If enough letters are typed, enable wiggling
     if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
@@ -278,6 +278,7 @@ function drawFreeplay() {
     cursor.update();
     cursor.display(cursorX, cursorY - scrollOffset);
 
+    drawBorder(backgroundColor);
 
 }
 
