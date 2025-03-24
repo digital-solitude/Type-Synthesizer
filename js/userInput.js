@@ -90,6 +90,18 @@ function handleIntroKeyPressed() {
 }
 
 function handleStoryKeyPressed() {
+    // Log timing for special keys
+    if (!startedTyping) {
+        console.log("started typing");
+        startedTyping = true;
+        timeStarted = millis();
+        console.log("special key: " + key + ", timing: " + 0);
+    } else {
+        let timeNow = millis();
+        console.log("special key: " + key + ", timing: " + (timeNow - timeStarted));
+        timeStarted = timeNow;
+    }
+
     // console.log("story keyPressed: " + key);
     if (key === 'Backspace') {
         // Prevent backspacing past a completed hint text section
