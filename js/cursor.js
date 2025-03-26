@@ -7,7 +7,7 @@
 
 class Cursor {
     constructor() {
-        this.blinkInterval = 500; // ms
+        this.blinkInterval = 1000; // ms
         this.lastBlinkTime = 0;
         this.visible = true;
     }
@@ -22,7 +22,7 @@ class Cursor {
 
     display(x, y) {
         if (this.visible) {
-            stroke(255);
+            stroke(255, 127);
             strokeWeight(2);
             line(x, y, x, y + textsize);
         }
