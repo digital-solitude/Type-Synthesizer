@@ -27,7 +27,8 @@
             right: 1cm;
             bottom: 1cm;
             left: 1cm;
-            border: 2px solid #a31caf; /* Bolder, more magenta border */
+            border: 2px solid #a31caf;
+            /* Bolder, more magenta border */
             pointer-events: none;
             z-index: 999;
         }
@@ -38,7 +39,8 @@
             left: 0.5cm;
             right: 0.5cm;
             height: calc(100% - 1cm);
-            pointer-events: none; /* Allow clicks to pass through to the actual menu items */
+            pointer-events: none;
+            /* Allow clicks to pass through to the actual menu items */
         }
 
         .page-title {
@@ -46,7 +48,8 @@
             top: 2cm;
             right: 2cm;
             font-family: Arial, sans-serif;
-            font-weight: 200; /* Light font weight */
+            font-weight: 200;
+            /* Light font weight */
             font-size: 24px;
             color: #333;
             text-align: right;
@@ -55,33 +58,41 @@
         .menu-item {
             position: absolute;
             cursor: pointer;
-            pointer-events: all; /* Re-enable pointer events for menu items */
+            pointer-events: all;
+            /* Re-enable pointer events for menu items */
         }
 
         /* Left menu positioning - first image */
         .menu-item.left {
-            top: 2cm; /* Buffer from the top */
-            left: 2cm; /* Buffer from the left */
+            top: 2cm;
+            /* Buffer from the top */
+            left: 2cm;
+            /* Buffer from the left */
             text-align: left;
         }
 
         /* Right menu positioning - second image (next to first) */
         .menu-item.right {
-            top: 2cm; /* Buffer from the top, aligned with first image */
-            left: 12cm; /* Position to the right of the left image with spacing */
+            top: 2cm;
+            /* Buffer from the top, aligned with first image */
+            left: 12cm;
+            /* Position to the right of the left image with spacing */
             text-align: left;
         }
 
         .menu-image-container {
-            width: 300px; /* Fixed width for all image containers */
-            height: 200px; /* Fixed height for all image containers */
+            width: 300px;
+            /* Fixed width for all image containers */
+            height: 200px;
+            /* Fixed height for all image containers */
             overflow: hidden;
         }
 
         .menu-image {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* This will maintain aspect ratio while filling the container */
+            object-fit: cover;
+            /* This will maintain aspect ratio while filling the container */
             transition: transform 0.3s ease;
             border: 2px solid transparent;
         }
@@ -92,7 +103,8 @@
         }
 
         .caption {
-            font-size: 12px; /* Small font size for captions */
+            font-size: 12px;
+            /* Small font size for captions */
             margin-top: 5px;
             color: #555;
         }
@@ -100,9 +112,11 @@
         /* Common content area for both menu items */
         .content-area {
             position: absolute;
-            top: 9cm; /* Position below both images with some space */
+            top: 9cm;
+            /* Position below both images with some space */
             left: 2cm;
-            width: 1600px; /* Wide enough for content */
+            width: 1600px;
+            /* Wide enough for content */
             max-height: 0;
             overflow: hidden;
             background-color: #f0f0f050;
@@ -117,11 +131,13 @@
         }
 
         .menu-content {
-            display: none; /* Hide by default */
+            display: none;
+            /* Hide by default */
         }
 
         .menu-content.active {
-            display: block; /* Show when active */
+            display: block;
+            /* Show when active */
         }
 
         .footnotes {
@@ -136,7 +152,8 @@
             position: fixed;
             bottom: 2cm;
             right: 2cm;
-            width: 200px; /* Adjust size as needed */
+            width: 200px;
+            /* Adjust size as needed */
             height: auto;
             cursor: pointer;
             z-index: 1000;
@@ -157,12 +174,15 @@
 <body>
     <div class="menu-container">
         <!-- Page Title -->
-        <div class="page-title"><color="green"></color><u>PHANTOMS/CITATIONS</u></div>
-        
+        <div class="page-title">
+            <color="green">
+                </color><u>PHANTOMS/CITATIONS</u>
+        </div>
+
         <!-- Sally Menu Item - Left Top Position -->
         <div class="menu-item left" onclick="toggleMenu(this, 'sally-content')">
             <div class="menu-image-container">
-                <img src="Francis101.jpg" alt="Sally at Xerox PARC" class="menu-image">
+                <img src="./images/Francis101.jpg" alt="Sally at Xerox PARC" class="menu-image">
             </div>
             <div class="caption">Mrs Hope Simmons at the 1857 Francis typewriter</div>
         </div>
@@ -170,7 +190,7 @@
         <!-- Literary Piano Menu Item - Right Top Position (now next to the first one) -->
         <div class="menu-item right" onclick="toggleMenu(this, 'piano-content')">
             <div class="menu-image-container">
-                <img src="LiteraryPiano_PaulKlee.png" alt="The Literary Piano" class="menu-image">
+                <img src="./images/LiteraryPiano_PaulKlee.png" alt="The Literary Piano" class="menu-image">
             </div>
             <div class="caption">The Literary Piano by Paul Klee</div>
         </div>
@@ -180,37 +200,79 @@
     <div class="content-area" id="content-area">
         <!-- Sally Content -->
         <div class="menu-content" id="sally-content">
-            <p><strong>Sally</strong> sat at her desk, fingers poised over the keyboard, eyes scanning the screen. She was the ideal user—efficient, intuitive, a seamless extension of the machine. But Sally wasn't real. She was based on a secretary who worked at Xerox PARC, a woman whose identity was fictionalized to create the model user. In the early 1970s, as Xerox PARC researchers shifted focus towards catering to a whole, 'real' user instead of abstract computing goals - they conjured Sally: a typist, trained on the logic of typewriters, now expected to transfer that fluency to a computer interface. Her workflow was already rhythmic, mechanical—now, computing had to meet her where she was, streamlining the transition from paper to screen.[¹]</p>
-            
-            <p>This shift marked a departure from earlier visions of computing. Where Douglas Engelbart had envisioned computers as tools to augment human intellect,[²] Xerox PARC turned to making them accessible, favoring usability over complexity. Sally became the imagined test subject for this shift—she needed her desktop interface to be clear, her icons intuitive, her system responsive.[³] As computing historian Nicolas Nova notes, figures like Sally are among the many famous "user figures" that shaped human-computer interaction, designed to embody the ideal user experience.[⁴]</p>
-            
-            <p>Sally is everywhere and unseen, we are all made in her image. Her invisible labor shaping the metaphors we still use today. She was a figure molded by corporate needs, a specter of feminized clerical work, bound to the logic of efficiency. The computer interface, built to accommodate Sally, naturalized the shift from typewriting to computing while simultaneously constraining what computers could become. The landscape of computing was changing, and Sally was at the center of it—not as a real woman, but as a construct, a justification for the design decisions that continue to define our digital world.[⁵]</p>
-            
+            <p><strong>Sally</strong> sat at her desk, fingers poised over the keyboard, eyes scanning the screen. She
+                was the ideal user—efficient, intuitive, a seamless extension of the machine. But Sally wasn't real. She
+                was based on a secretary who worked at Xerox PARC, a woman whose identity was fictionalized to create
+                the model user. In the early 1970s, as Xerox PARC researchers shifted focus towards catering to a whole,
+                'real' user instead of abstract computing goals - they conjured Sally: a typist, trained on the logic of
+                typewriters, now expected to transfer that fluency to a computer interface. Her workflow was already
+                rhythmic, mechanical—now, computing had to meet her where she was, streamlining the transition from
+                paper to screen.[¹]</p>
+
+            <p>This shift marked a departure from earlier visions of computing. Where Douglas Engelbart had envisioned
+                computers as tools to augment human intellect,[²] Xerox PARC turned to making them accessible, favoring
+                usability over complexity. Sally became the imagined test subject for this shift—she needed her desktop
+                interface to be clear, her icons intuitive, her system responsive.[³] As computing historian Nicolas
+                Nova notes, figures like Sally are among the many famous "user figures" that shaped human-computer
+                interaction, designed to embody the ideal user experience.[⁴]</p>
+
+            <p>Sally is everywhere and unseen, we are all made in her image. Her invisible labor shaping the metaphors
+                we still use today. She was a figure molded by corporate needs, a specter of feminized clerical work,
+                bound to the logic of efficiency. The computer interface, built to accommodate Sally, naturalized the
+                shift from typewriting to computing while simultaneously constraining what computers could become. The
+                landscape of computing was changing, and Sally was at the center of it—not as a real woman, but as a
+                construct, a justification for the design decisions that continue to define our digital world.[⁵]</p>
+
             <div class="footnotes">
-                <p>[1] [5] [3] Stéphane Vial, <em>Being and the Screen: How the Digital Changes Perception</em> (MIT Press, 2019).</p>
-                <p>[2] Douglas Engelbart, "The Invisible Revolution," interview with John Markoff, Computer History Museum, 1999.</p>
-                <p>[4] Nicolas Nova, "Famous User Figures in the History of HCI," <em>Pasta & Vinegar</em> (blog), February 18, 2010, https://www.nicolasnova.net/pasta-and-vinegar/2010/02/18/famous-user-figures-in-the-history-of-hci.</p>
+                <p>[1] [5] [3] Stéphane Vial, <em>Being and the Screen: How the Digital Changes Perception</em> (MIT
+                    Press, 2019).</p>
+                <p>[2] Douglas Engelbart, "The Invisible Revolution," interview with John Markoff, Computer History
+                    Museum, 1999.</p>
+                <p>[4] Nicolas Nova, "Famous User Figures in the History of HCI," <em>Pasta & Vinegar</em> (blog),
+                    February 18, 2010,
+                    https://www.nicolasnova.net/pasta-and-vinegar/2010/02/18/famous-user-figures-in-the-history-of-hci.
+                </p>
             </div>
         </div>
-        
+
         <!-- Literary Piano Content -->
         <div class="menu-content" id="piano-content">
-            <p><strong>The Literary Piano</strong> was an early typewriting device, conceived by Samuel Ward Francis in the mid-19th century, that merged the mechanics of writing with the musicality of a piano. Long before the QWERTY keyboard became standard, Francis imagined a machine that would allow users to "play" their words, pressing keys to imprint letters onto paper with the same ease as striking a note on a musical instrument.[¹] His first prototype was constructed using a child's piano, repurposed to arrange letters in a way that mimicked musical scales rather than the linear rows of a traditional typewriter.[²] This approach reflected Francis's belief that typing, like playing music, should be intuitive, rhythmic, and ergonomic.</p>
-            
-            <p>Francis patented the device in 1857, envisioning it as a tool that would make writing faster and more efficient, especially for those untrained in penmanship.[³] The Literary Piano embodied an alternative lineage of interface design—one in which textual input was not constrained by rigid mechanical arrangements but instead borrowed from the fluidity of musical performance. Though it never gained widespread use, the concept anticipated later innovations in typing ergonomics and interface metaphors, challenging the dominant paradigms of written communication.[⁴]</p>
-            
-            <p>As a historical artifact, the Literary Piano sits at the intersection of writing, labor, and machine aesthetics, much like the contemporary discourse on typing and digital interfaces. Its experimental form serves as a reminder that the tools we take for granted today—keyboards, word processors, digital text—were once sites of radical possibility. By looking back at Francis's invention, we can reconsider the standardized forms of interaction that shape our engagement with machines today, much as the figure of "Sally" at Xerox PARC shaped the history of computing.</p>
-            
+            <p><strong>The Literary Piano</strong> was an early typewriting device, conceived by Samuel Ward Francis in
+                the mid-19th century, that merged the mechanics of writing with the musicality of a piano. Long before
+                the QWERTY keyboard became standard, Francis imagined a machine that would allow users to "play" their
+                words, pressing keys to imprint letters onto paper with the same ease as striking a note on a musical
+                instrument.[¹] His first prototype was constructed using a child's piano, repurposed to arrange letters
+                in a way that mimicked musical scales rather than the linear rows of a traditional typewriter.[²] This
+                approach reflected Francis's belief that typing, like playing music, should be intuitive, rhythmic, and
+                ergonomic.</p>
+
+            <p>Francis patented the device in 1857, envisioning it as a tool that would make writing faster and more
+                efficient, especially for those untrained in penmanship.[³] The Literary Piano embodied an alternative
+                lineage of interface design—one in which textual input was not constrained by rigid mechanical
+                arrangements but instead borrowed from the fluidity of musical performance. Though it never gained
+                widespread use, the concept anticipated later innovations in typing ergonomics and interface metaphors,
+                challenging the dominant paradigms of written communication.[⁴]</p>
+
+            <p>As a historical artifact, the Literary Piano sits at the intersection of writing, labor, and machine
+                aesthetics, much like the contemporary discourse on typing and digital interfaces. Its experimental form
+                serves as a reminder that the tools we take for granted today—keyboards, word processors, digital
+                text—were once sites of radical possibility. By looking back at Francis's invention, we can reconsider
+                the standardized forms of interaction that shape our engagement with machines today, much as the figure
+                of "Sally" at Xerox PARC shaped the history of computing.</p>
+
             <div class="footnotes">
-                <p>[1] [2] [4] Robert Messenger, "Sam Francis' Typewriter – The Literary Piano," <em>Oz Typewriter</em> (blog), December 19, 2011, https://oztypewriter.blogspot.com/2011/12/sam-francis-typewriter-literary-piano.html.</p>
-                <p>[3] "The Literary Piano," <em>Newport Historical Society</em>, April 8, 2014, https://newporthistory.org/history-bytes-literary-piano/.</p>
+                <p>[1] [2] [4] Robert Messenger, "Sam Francis' Typewriter – The Literary Piano," <em>Oz Typewriter</em>
+                    (blog), December 19, 2011,
+                    https://oztypewriter.blogspot.com/2011/12/sam-francis-typewriter-literary-piano.html.</p>
+                <p>[3] "The Literary Piano," <em>Newport Historical Society</em>, April 8, 2014,
+                    https://newporthistory.org/history-bytes-literary-piano/.</p>
             </div>
         </div>
     </div>
 
     <!-- Play button as an image in the bottom right -->
     <a href="index.html">
-        <img src="background.png" alt="Play" class="play-button">
+        <img src="./images/background.png" alt="Play" class="play-button">
     </a>
 
     <script>
@@ -218,17 +280,17 @@
             const contentArea = document.getElementById('content-area');
             const contentElement = document.getElementById(contentId);
             const isCurrentlyActive = element.classList.contains('active');
-            
+
             // Remove active class from all menu items
             document.querySelectorAll('.menu-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             // Hide all content sections
             document.querySelectorAll('.menu-content').forEach(content => {
                 content.classList.remove('active');
             });
-            
+
             if (isCurrentlyActive) {
                 // If this menu was already active, close everything
                 contentArea.classList.remove('active');
@@ -241,4 +303,5 @@
         }
     </script>
 </body>
+
 </html>

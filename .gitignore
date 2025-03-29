@@ -1,1 +1,4 @@
 *.php
+.vscode
+.vscode/sftp.json
+

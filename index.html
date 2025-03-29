@@ -1,77 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- p5.js and p5.sound.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.js"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- External stylesheet -->
-    <link rel="stylesheet" href="style.css" />
-  </head>
+  <!-- p5.js and p5.sound.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.js"></script>
 
-  <body>
-    <div class="page-title">PHANTOMS/CITATIONS</div>
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-    <!-- Mobile warning message -->
-    <div class="mobile-warning" id="mobile-warning">
-      <div class="mobile-warning-content">
-        <div class="mobile-warning-icon">🎹</div>
-        <h2>Desktop Experience Recommended</h2>
-        <p>
-          For the full experience visit this site on a laptop or desktop
-          computer.
-        </p>
-        <p>The Type Synthesizer is designed for keyboard interaction.</p>
-        <button id="continue-anyway">Continue Anyway</button>
-      </div>
+<body>
+  <div class="page-title">PHANTOMS/CITATIONS</div>
+
+  <!-- Mobile warning message -->
+  <div class="mobile-warning" id="mobile-warning">
+    <div class="mobile-warning-content">
+      <div class="mobile-warning-icon">🎹</div>
+      <h2>Desktop Experience Recommended</h2>
+      <p>
+        For the full experience visit this site on a laptop or desktop
+        computer.
+      </p>
+      <p>The Type Synthesizer is designed for keyboard interaction.</p>
+      <button id="continue-anyway">Continue Anyway</button>
     </div>
+  </div>
 
-    <script>
-      document.querySelector(".page-title").addEventListener("click", () => {
-        window.open("info.html", "_blank");
+  <script>
+    document.querySelector(".page-title").addEventListener("click", () => {
+      window.open("info.html", "_blank");
+    });
+
+    // Mobile detection
+    function isMobileDevice() {
+      return (
+        window.innerWidth <= 768 ||
+        navigator.userAgent.match(/Android/i) ||
+        navigator.userAgent.match(/webOS/i) ||
+        navigator.userAgent.match(/iPhone/i) ||
+        navigator.userAgent.match(/iPad/i) ||
+        navigator.userAgent.match(/iPod/i) ||
+        navigator.userAgent.match(/BlackBerry/i) ||
+        navigator.userAgent.match(/Windows Phone/i)
+      );
+    }
+
+    // Show warning if on mobile
+    if (isMobileDevice()) {
+      document.getElementById("mobile-warning").style.display = "block";
+    }
+
+    // Allow users to continue anyway
+    document
+      .getElementById("continue-anyway")
+      .addEventListener("click", function () {
+        document.getElementById("mobile-warning").style.display = "none";
       });
+  </script>
 
-      // Mobile detection
-      function isMobileDevice() {
-        return (
-          window.innerWidth <= 768 ||
-          navigator.userAgent.match(/Android/i) ||
-          navigator.userAgent.match(/webOS/i) ||
-          navigator.userAgent.match(/iPhone/i) ||
-          navigator.userAgent.match(/iPad/i) ||
-          navigator.userAgent.match(/iPod/i) ||
-          navigator.userAgent.match(/BlackBerry/i) ||
-          navigator.userAgent.match(/Windows Phone/i)
-        );
-      }
+  <!-- Make sure to load these in correct order -->
+  <script src="./js/globals.js"></script>
+  <script src="./js/typedLetter.js"></script>
+  <script src="./js/cursor.js"></script>
+  <script src="./js/soundUtils.js"></script>
+  <script src="./js/sticky.js"></script>
+  <script src="./js/userInput.js"></script>
+  <script src="./js/sketch.js"></script>
 
-      // Show warning if on mobile
-      if (isMobileDevice()) {
-        document.getElementById("mobile-warning").style.display = "block";
-      }
+  <!-- A "Play" image or anything else you want -->
+  <a href="index.html">
+    <img src="./images/background.png" alt="Play" class="play-button" />
+  </a>
+</body>
 
-      // Allow users to continue anyway
-      document
-        .getElementById("continue-anyway")
-        .addEventListener("click", function () {
-          document.getElementById("mobile-warning").style.display = "none";
-        });
-    </script>
-
-    <!-- Make sure to load these in correct order -->
-    <script src="./js/globals.js"></script>
-    <script src="./js/typedLetter.js"></script>
-    <script src="./js/cursor.js"></script>
-    <script src="./js/soundUtils.js"></script>
-    <script src="./js/userInput.js"></script>
-    <script src="./js/sketch.js"></script>
-
-    <!-- A "Play" image or anything else you want -->
-    <a href="index.html">
-      <img src="background.png" alt="Play" class="play-button" />
-    </a>
-  </body>
 </html>
