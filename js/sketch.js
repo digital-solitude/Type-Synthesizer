@@ -306,9 +306,16 @@ function drawFreeplay() {
     // Calculate cursor position
     let lastNewlineIndex = letters.lastIndexOf('\n');
     let lineText = lastNewlineIndex === -1 ? letters : letters.slice(lastNewlineIndex + 1);
-    //console.log("lineText: " + lineText);
     let cursorX = margin / 2 + 60 + textWidth(lineText);
     let cursorY = margin / 2 + 60 + numberOfEnters * leading;
+
+    // Check if we need to wrap to next line based on freeplay width limit
+    if (cursorX > width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY) {
+        cursorX = margin / 2 + 60;
+        cursorY += leading;
+        letters += '\n';
+        numberOfEnters++;
+    }
 
     // do not let cursor go above the ceiling
     if (cursorY < cursorCeiling) {
