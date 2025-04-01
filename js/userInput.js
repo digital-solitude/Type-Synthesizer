@@ -109,7 +109,7 @@ function handleStoryKeyPressed() {
             // Check if we're at a point where we're about to delete a completed hint
             let twoNewlinesPattern = "\n\n";
             let lastTwoNewlines = letters.lastIndexOf(twoNewlinesPattern);
-            
+
             // If we're at the beginning of a new hint text section
             if (lastTwoNewlines !== -1 && letters.length - lastTwoNewlines === 2) {
                 // Don't allow backspacing that would delete a completed hint section
@@ -118,13 +118,13 @@ function handleStoryKeyPressed() {
                 }
                 return;
             }
-            
+
             // If we're at the start of a line (after a newline)
             if (letters.slice(-1) === '\n') {
                 // Just remove the newline
                 letters = letters.slice(0, -1);
                 numberOfEnters--;
-                
+
                 // Recalculate scroll when moving up a line
                 if (typedLetters.length > 0) {
                     let lastLetter = typedLetters[typedLetters.length - 1];
@@ -155,11 +155,11 @@ function handleStoryKeyPressed() {
     else if (key === 'Enter' || key === 'Return') {
         letters += "\n";
         numberOfEnters++;
-        
+
         // Calculate new cursor position after Enter
         let newY = margin / 2 + 60 + numberOfEnters * leading;
         let currentY = newY - scrollOffset;
-        
+
         // Check if we need to scroll
         if (currentY > height * SCROLL_THRESHOLD) {
             let scrollAmount = currentY - (height * SCROLL_THRESHOLD);
@@ -226,45 +226,45 @@ function keyTypedHandler(typedChar) {
 
     // Create the TypedLetter at the calculated position
     typedLetters.push(new TypedLetter(typedChar, x, y));
-    
+
     // Check if the user has fully typed the current hint text
     // Create a string from the typed letters
     let typedText = "";
     for (let i = 0; i < typedLetters.length; i++) {
         typedText += typedLetters[i].letter;
     }
-    
+
     // Get the current hint text without any extra spaces or newlines
     let currentHint = "";
     if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
         currentHint = sallyHintText[currentHintTextIndex].trim();
     }
-    
+
     // Only check the most recent typed characters, not the entire history
     // This prevents false matches with earlier hint text content
     let recentTypedText = typedText;
     if (typedText.length > currentHint.length * 2) {
         recentTypedText = typedText.slice(-currentHint.length * 2);
     }
-    
+
     // Check if the entire current hint text has been typed
     // Allow for some extra characters (since users might add spaces, etc.)
     if (recentTypedText.length >= currentHint.length && recentTypedText.includes(currentHint)) {
         // Move to the next hint text
         if (currentHintTextIndex < sallyHintText.length - 1) {
             currentHintTextIndex++;
-            
+
             // Insert two newlines to position the next hint text below
             letters += "\n\n";
             numberOfEnters += 2;
-            
+
             // We keep all the existing typed letters, but need to mark where the next hint begins
             // This will be used for backspace handling
             let nextHintStartIndex = typedLetters.length;
-            
+
             // Update cursor position for the next hint text
             let newY = margin / 2 + 60 + numberOfEnters * leading;
-            
+
             // Update scroll position if needed
             let currentY = newY - scrollOffset;
             if (currentY > height * SCROLL_THRESHOLD) {

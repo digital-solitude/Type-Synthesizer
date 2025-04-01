@@ -7,11 +7,14 @@
  ******************************************************/
 
 function preload() {
-
+    // Load all sticky note images
+    for (let i = 1; i <= 5; i++) {
+        stickyImages[`sticky${i}`] = loadImage(`images/stickies/sticky${i}.png`);
+    }
 }
 
 function setup() {
-    appendToArenaBlock('test'); 
+    appendToArenaBlock('test');
 
     // Creates a canvas that fills the entire browser window
     createCanvas(windowWidth, windowHeight);
@@ -23,6 +26,21 @@ function setup() {
 
     // Initialize color
     letterColor = color(25, 150, 25);
+
+    // Create sticky notes with different images along the right side
+    const rightMargin = width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
+    const stickySpacing = height / 6; // Evenly space the stickies vertically
+    const maxStaggerOffset = (width - rightMargin - stickySize) / 2;
+    const staggerOffset = maxStaggerOffset * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
+    for (let i = 1; i <= 5; i++) {
+        // Alternate between more right and more left, ensuring we stay within bounds
+        const baseX = rightMargin + (width - rightMargin) / 2;
+        const x = i % 2 === 0
+            ? baseX - staggerOffset  // Even numbered stickies go more left
+            : baseX + staggerOffset / 2; // Odd numbered stickies go more right
+        const y = stickySpacing * i; // Space vertically
+        stickies.push(new Sticky(stickyImages[`sticky${i}`], x, y));
+    }
 
     // p5.PolySynth
     try {
@@ -236,17 +254,22 @@ function loadFreeplay() {
     currentHintTextIndex = 0;  // Reset to the first hint text
 
     cursorCeiling = margin / 2 + 60;
-    
+
     // Set the initial hint text position
     hintTextPositions = [margin / 2 + 60]; // Start the first hint at the top margin
 }
 
 function drawFreeplay() {
-
     // Gradually transition colors
     let { backgroundColor, textColor } = transitionColors();
 
     background(backgroundColor);
+
+    // Update and display sticky notes
+    for (let sticky of stickies) {
+        sticky.update();
+        sticky.display();
+    }
 
     // If enough letters are typed, enable wiggling
     if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
@@ -260,7 +283,7 @@ function drawFreeplay() {
     // Calculate position for the current hint text
     // It should be at the current cursor position
     let hintTextY = margin / 2 + 60 + numberOfEnters * leading;
-    
+
     // Display all hint texts - completed ones and the current one being typed
     displayHintTexts();
 
@@ -287,7 +310,6 @@ function drawFreeplay() {
     cursor.display(cursorX, cursorY - scrollOffset);
 
     drawBorder(backgroundColor);
-
 }
 
 // Function to display all hint texts
@@ -296,11 +318,13 @@ function displayHintTexts() {
     fill(255, 255, 255, hintTextOpacity);
     textAlign(LEFT, TOP);
     textSize(textsize);
-    
+
     // Display the current hint text only
     let currentHintY = margin / 2 + 60 + numberOfEnters * leading;
-    text(sallyHintText[currentHintTextIndex], margin / 2 + 60, currentHintY - scrollOffset, width - margin, height * 5);
-    
+    // Use MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY to ensure text doesn't go into sticky area
+    text(sallyHintText[currentHintTextIndex], margin / 2 + 60, currentHintY - scrollOffset,
+        width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY - margin, height * 5);
+
     // We don't need to display completed hint texts separately since they're already visible as typed letters
     // The previous version was causing duplicate text to appear
 }
@@ -340,7 +364,7 @@ function transitionColors() {
             textColor[2] = Math.min(255, textColor[2] * 1.5);
         }
     }
-    
+
     // Return the calculated colors
     return {
         backgroundColor: color(bgColor[0], bgColor[1], bgColor[2]),
@@ -379,17 +403,17 @@ function windowResized() {
 
 function appendToArenaBlock(text) {
     fetch('arena.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ append_text: text })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ append_text: text })
     })
-    .then(res => res.json())
-    .then(data => {
-      console.log('Updated block data:', data);
-    })
-    .catch(err => console.error('Error updating block:', err));
+        .then(res => res.json())
+        .then(data => {
+            console.log('Updated block data:', data);
+        })
+        .catch(err => console.error('Error updating block:', err));
 }
-  
+
 
 function cmToPixels(cm) {
     // Get screen DPI using a hidden div method
@@ -401,4 +425,11 @@ function cmToPixels(cm) {
     document.body.removeChild(div); // Clean up
 
     return cm * (dpi / 2.54); // Convert cm to pixels
+}
+
+function mouseMoved() {
+    // Check hover state for all stickies
+    for (let sticky of stickies) {
+        sticky.checkHover(mouseX, mouseY);
+    }
 }
