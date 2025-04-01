@@ -29,16 +29,24 @@ function setup() {
 
     // Create sticky notes with different images along the right side
     const rightMargin = width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
-    const stickySpacing = height / 6; // Evenly space the stickies vertically
     const maxStaggerOffset = (width - rightMargin - stickySize) / 2;
     const staggerOffset = maxStaggerOffset * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
+    
+    // Define vertical range for sticky notes
+    const minY = height * 0.2;  // Start at 40% of screen height
+    const maxY = height * 0.7;  // End at 80% of screen height
+    
     for (let i = 1; i <= 5; i++) {
         // Alternate between more right and more left, ensuring we stay within bounds
         const baseX = rightMargin + (width - rightMargin) / 2;
         const x = i % 2 === 0
             ? baseX - staggerOffset  // Even numbered stickies go more left
             : baseX + staggerOffset / 2; // Odd numbered stickies go more right
-        const y = stickySpacing * i; // Space vertically
+            
+        // Map the index (1-5) to a y position between minY and maxY
+        const normalizedIndex = (i - 1) / 4; // Convert 1-5 to 0-1
+        const y = lerp(minY, maxY, normalizedIndex);
+        
         stickies.push(new Sticky(stickyImages[`sticky${i}`], x, y));
     }
 
