@@ -171,7 +171,9 @@ function loadGuided() {
 }
 
 function drawGuided() {
-    background(0);
+    let { backgroundColor, textColor } = transitionColors();
+
+    background(backgroundColor);
 
     // Display existing typed letters (same as freeplay)
     for (let i = 0; i < typedLetters.length; i++) {
@@ -250,7 +252,7 @@ function drawGuided() {
         }
     }
 
-    drawBorder(color(0, 0, 0));
+    drawBorder(backgroundColor);
 
 }
 
