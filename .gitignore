@@ -1,4 +1,4 @@
 *.php
 .vscode
 .vscode/sftp.json
-
+.DS_Store
