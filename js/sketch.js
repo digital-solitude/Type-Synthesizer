@@ -7,9 +7,18 @@
  ******************************************************/
 
 function preload() {
-    // Load all sticky note images
-    for (let i = 1; i <= 5; i++) {
-        stickyImages[`sticky${i}`] = loadImage(`images/stickies/sticky${i}.png`);
+    // Create an array of all available sticky note numbers
+    const availableStickies = [1, 2, 3, 4, 5];
+
+    // Shuffle the array to get random order
+    for (let i = availableStickies.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableStickies[i], availableStickies[j]] = [availableStickies[j], availableStickies[i]];
+    }
+
+    // Load the first 5 sticky notes in random order
+    for (let i = 0; i < 5; i++) {
+        stickyImages[`sticky${i + 1}`] = loadImage(`images/stickies/sticky${availableStickies[i]}.png`);
     }
 }
 
