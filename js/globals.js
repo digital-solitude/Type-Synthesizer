@@ -34,6 +34,14 @@ const MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY = 0.7;
 
 let letterColor; // Will be initialized in setup
 
+
+// Sticky notes
+let stickies = [];  // Array to store Sticky instances
+let stickyImages = {};  // Object to store preloaded sticky images
+const stickySize = 100;
+const stickySizeHovered = 360;
+
+
 // Text styling
 let textsize = 32;
 let margin = 100;
@@ -193,9 +201,3 @@ const guidedNoteSequence = [
     ['n', 0.18], ['.', 0.36], ['n', 5.55], ['m', 0.89], ['.', 5.31],
     ['.', 0.59], ['.', 0.43], ['.', 0.43]
 ];
-
-// Sticky notes
-let stickies = [];  // Array to store Sticky instances
-let stickyImages = {};  // Object to store preloaded sticky images
-const stickySize = 100;
-const stickySizeHovered = 300;
