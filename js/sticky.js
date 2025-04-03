@@ -6,30 +6,33 @@
  ******************************************************/
 
 class Sticky {
+    // Static property to track the currently hovered Sticky
+    static currentlyHovered = null;
+
     constructor(img, x, y) {
         this.img = img;
         this.x = x;
         this.y = y;
-        
+
         // Store original position for returning to
         this.originalX = x;
         this.originalY = y;
-        
+
         // Calculate aspect ratio
         this.aspectRatio = this.img.width / this.img.height;
-        
+
         // Base dimensions
         this.baseWidth = stickySize * this.aspectRatio;
         this.baseHeight = stickySize;
-        
+
         // Hover dimensions
         this.hoverWidth = stickySizeHovered * this.aspectRatio;
         this.hoverHeight = stickySizeHovered;
-        
+
         // Current dimensions
         this.currentWidth = this.baseWidth;
         this.currentHeight = this.baseHeight;
-        
+
         this.isHovered = false;
         this.transitionSpeed = 0.1; // Speed of size transition
     }
@@ -38,7 +41,7 @@ class Sticky {
         // Smoothly transition dimensions based on hover state
         let targetWidth = this.isHovered ? this.hoverWidth : this.baseWidth;
         let targetHeight = this.isHovered ? this.hoverHeight : this.baseHeight;
-        
+
         this.currentWidth += (targetWidth - this.currentWidth) * this.transitionSpeed;
         this.currentHeight += (targetHeight - this.currentHeight) * this.transitionSpeed;
 
@@ -46,7 +49,7 @@ class Sticky {
         if (this.isHovered) {
             let halfWidth = this.currentWidth / 2;
             let halfHeight = this.currentHeight / 2;
-            
+
             // Check right edge
             if (this.x + halfWidth > width) {
                 this.x = width - halfWidth;
@@ -88,7 +91,23 @@ class Sticky {
         let bottom = this.y + halfHeight;
 
         // Check if mouse is within bounds
-        this.isHovered = mouseX >= left && mouseX <= right &&
+        const isHovering = mouseX >= left && mouseX <= right &&
             mouseY >= top && mouseY <= bottom;
+
+        // If this sticky is being hovered and it's not already the currently hovered one
+        if (isHovering && Sticky.currentlyHovered !== this) {
+            // If there was a previously hovered sticky, un-hover it
+            if (Sticky.currentlyHovered) {
+                Sticky.currentlyHovered.isHovered = false;
+            }
+            // Set this as the currently hovered sticky
+            Sticky.currentlyHovered = this;
+            this.isHovered = true;
+        }
+        // If this sticky is not being hovered and it was the currently hovered one
+        else if (!isHovering && Sticky.currentlyHovered === this) {
+            this.isHovered = false;
+            Sticky.currentlyHovered = null;
+        }
     }
 } 
