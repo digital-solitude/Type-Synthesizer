@@ -90,16 +90,18 @@ function handleIntroKeyPressed() {
 }
 
 function handleStoryKeyPressed() {
-    // Log timing for special keys
-    if (!startedTyping) {
-        console.log("started typing");
-        startedTyping = true;
-        timeStarted = millis();
-        console.log("special key: " + key + ", timing: " + 0);
-    } else {
-        let timeNow = millis();
-        console.log("special key: " + key + ", timing: " + (timeNow - timeStarted));
-        timeStarted = timeNow;
+    // Only log timing for special keys (Backspace, Enter, etc.)
+    if (key === 'Backspace' || key === 'Enter' || key === 'Return' || keyCode === UP_ARROW || keyCode === DOWN_ARROW) {
+        if (!startedTyping) {
+            console.log("started typing");
+            startedTyping = true;
+            timeStarted = millis();
+            console.log("special key: " + key + ", timing: " + 0);
+        } else {
+            let timeNow = millis();
+            console.log("special key: " + key + ", timing: " + (timeNow - timeStarted));
+            timeStarted = timeNow;
+        }
     }
 
     // console.log("story keyPressed: " + key);
