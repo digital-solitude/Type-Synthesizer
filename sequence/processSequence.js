@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const inputFilePath = path.join(__dirname, 'sequence.txt');
-const outputFilePath = path.join(__dirname, 'sequence-output-fixed.txt');
+const outputFilePath = path.join(__dirname, 'sequence-output.txt');
 
 fs.readFile(inputFilePath, 'utf8', (err, data) => {
     if (err) return console.error('Error reading file:', err);
@@ -16,6 +16,7 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
     let currentKey = null;
     let currentTiming = null;
 
+    // First pass: parse all entries
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
 
@@ -25,12 +26,6 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
             const timingStr = line.split('timing: ')[1];
             currentKey = ',';
             currentTiming = parseFloat(timingStr);
-
-            // Add the entry
-            entries.push({
-                key: currentKey,
-                timing: currentTiming
-            });
         }
         // Then check for space
         else if (line.startsWith(', timing:')) {
@@ -38,12 +33,6 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
             const timingStr = line.split('timing: ')[1];
             currentKey = ' ';
             currentTiming = parseFloat(timingStr);
-
-            // Add the entry
-            entries.push({
-                key: currentKey,
-                timing: currentTiming
-            });
         }
         // Finally check for regular keys
         else if (line.includes('timing:')) {
@@ -51,8 +40,10 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
             const [key, timingStr] = line.split(', timing: ');
             currentKey = key;
             currentTiming = parseFloat(timingStr);
+        }
 
-            // Add the entry
+        // Add the entry if we found a valid key and timing
+        if (currentKey !== null && currentTiming !== null) {
             entries.push({
                 key: currentKey,
                 timing: currentTiming
@@ -60,7 +51,7 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
         }
     }
 
-    // Process entries to remove duplicate key events
+    // Second pass: remove duplicate key events
     const processedEntries = [];
     let lastKey = null;
 
@@ -83,13 +74,15 @@ fs.readFile(inputFilePath, 'utf8', (err, data) => {
     let output = 'const guidedNoteSequence = [\n';
     processedEntries.forEach((entry, index) => {
         const isLast = index === processedEntries.length - 1;
-        output += `    ['${entry.key}', ${entry.timing}]${isLast ? '' : ','}\n`;
+        // Round timing to 2 decimal places
+        const roundedTiming = Number(entry.timing.toFixed(2));
+        output += `    ['${entry.key}', ${roundedTiming}]${isLast ? '' : ','}\n`;
     });
     output += '];';
 
     // Write to file
     fs.writeFile(outputFilePath, output, (err) => {
         if (err) return console.error('Error writing file:', err);
-        console.log('Successfully wrote fixed sequence to sequence-output-fixed.txt');
+        console.log('Successfully processed sequence and wrote output to sequence-output.txt');
     });
 }); 

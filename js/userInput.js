@@ -60,17 +60,7 @@ function keyTyped() {
             // do nothing special
             break;
         case "freeplay":
-            // diagnostic logging
-            if (!startedTyping) {
-                console.log("started typing");
-                startedTyping = true;
-                timeStarted = millis();
-                console.log("key: " + key + ", timing: " + 0);
-            } else {
-                let timeNow = millis();
-                console.log("key: " + key + ", timing: " + (timeNow - timeStarted));
-                timeStarted = timeNow;
-            }
+            logKeyTiming(key);
             handleStoryKeyTyped();
             break;
     }
@@ -79,6 +69,19 @@ function keyTyped() {
 // For timing log
 let startedTyping = false;
 let timeStarted = 0;
+
+function logKeyTiming(key, isSpecialKey = false) {
+    if (!startedTyping) {
+        console.log("started typing");
+        startedTyping = true;
+        timeStarted = millis();
+        console.log((isSpecialKey ? "special " : "") + "key: " + key + ", timing: " + 0);
+    } else {
+        let timeNow = millis();
+        console.log((isSpecialKey ? "special " : "") + "key: " + key + ", timing: " + (timeNow - timeStarted));
+        timeStarted = timeNow;
+    }
+}
 
 function handleIntroKeyPressed() {
     // If any key is pressed (other than 1..4) => go to freeplay
@@ -91,17 +94,8 @@ function handleIntroKeyPressed() {
 
 function handleStoryKeyPressed() {
     // Only log timing for special keys (Backspace, Enter, etc.)
-    if (key === 'Backspace' || key === 'Enter' || key === 'Return' || keyCode === UP_ARROW || keyCode === DOWN_ARROW) {
-        if (!startedTyping) {
-            console.log("started typing");
-            startedTyping = true;
-            timeStarted = millis();
-            console.log("special key: " + key + ", timing: " + 0);
-        } else {
-            let timeNow = millis();
-            console.log("special key: " + key + ", timing: " + (timeNow - timeStarted));
-            timeStarted = timeNow;
-        }
+    if (key === 'Backspace' || key === 'Enter' || key === 'Return' || keyCode === UP_ARROW || keyCode === DOWN_ARROW || key === 'Shift') {
+        logKeyTiming(key, true);
     }
 
     // console.log("story keyPressed: " + key);

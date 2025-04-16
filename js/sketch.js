@@ -204,41 +204,45 @@ function drawGuided() {
                 // Get the character and duration
                 const [char, duration] = guidedNoteSequence[guidedCurrentNoteIndex];
 
-                // Handle Enter character
-                if (char === 'Enter') {
-                    guidedLetterX = margin / 2 + 60;
-                    guidedLetterY += leading;
-                    letters += '\n';
-                    numberOfEnters++;
-                } else {
-                    // Add character to display text
-                    guidedTypedText += char;
-                    letters += char;
-
-                    // Create a TypedLetter for visualization
-                    textSize(textsize);
-                    typedLetters.push(new TypedLetter(char, guidedLetterX, guidedLetterY));
-
-                    // Update position for next letter
-                    guidedLetterX += textWidth(char);
-
-                    // Check if we need to wrap to next line
-                    if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                // Skip shift key presses
+                if (char !== 'Shift') {
+                    // Handle Enter character
+                    if (char === 'Enter') {
                         guidedLetterX = margin / 2 + 60;
                         guidedLetterY += leading;
                         letters += '\n';
                         numberOfEnters++;
-                    }
-                }
+                    } else {
+                        // Add character to display text
+                        guidedTypedText += char;
+                        letters += char;
 
-                // If the character is in the notes map, play the note
-                if (char in notesMap) {
-                    playNote(notesMap[char]);
+                        // Create a TypedLetter for visualization
+                        textSize(textsize);
+                        typedLetters.push(new TypedLetter(char, guidedLetterX, guidedLetterY));
+
+                        // Update position for next letter
+                        guidedLetterX += textWidth(char);
+
+                        // Check if we need to wrap to next line
+                        if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                            guidedLetterX = margin / 2 + 60;
+                            guidedLetterY += leading;
+                            letters += '\n';
+                            numberOfEnters++;
+                        }
+                    }
+
+                    // If the character is in the notes map, play the note
+                    if (char in notesMap) {
+                        playNote(notesMap[char]);
+                    }
                 }
 
                 // Set up for the next note
                 guidedCurrentNoteIndex++;
-                guidedNextNoteTime = currentTime + (duration * 1000);
+                // Use duration directly if in milliseconds, convert to milliseconds if in seconds
+                guidedNextNoteTime = currentTime + (useMilliseconds ? duration : duration * 1000);
             }
         } else {
             // All notes have been played
