@@ -212,6 +212,31 @@ function drawGuided() {
                         guidedLetterY += leading;
                         letters += '\n';
                         numberOfEnters++;
+                    } else if (char === 'Backspace') {
+                        // Handle backspace by removing the last character
+                        if (letters.length > 0) {
+                            // Remove the last character from the display text
+                            guidedTypedText = guidedTypedText.slice(0, -1);
+                            letters = letters.slice(0, -1);
+
+                            // Remove the last typed letter from visualization
+                            if (typedLetters.length > 0) {
+                                typedLetters.pop();
+                            }
+
+                            // Update cursor position
+                            if (guidedLetterX > margin / 2 + 60) {
+                                guidedLetterX -= textWidth(letters.slice(-1));
+                            } else if (numberOfEnters > 0) {
+                                // If we're at the start of a line, move up a line
+                                numberOfEnters--;
+                                guidedLetterY -= leading;
+                                // Find the last line's width
+                                const lastNewlineIndex = letters.lastIndexOf('\n');
+                                const lastLine = letters.slice(lastNewlineIndex + 1);
+                                guidedLetterX = margin / 2 + 60 + textWidth(lastLine);
+                            }
+                        }
                     } else {
                         // Add character to display text
                         guidedTypedText += char;
