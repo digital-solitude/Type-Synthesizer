@@ -9,27 +9,10 @@ console.log('hello');
 window.gameState = gameState;
 
 function preload() {
-
-    introImage = loadImage('images/background.png');
-
-
-    console.log('helloagain');
-
-    // Create an array of all available sticky note numbers
-    availableStickies = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13,14];
-
-    // Shuffle the array to get random order
-    for (let i = availableStickies.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [availableStickies[i], availableStickies[j]] = [availableStickies[j], availableStickies[i]];
+    // Load all sticky note images
+    for (let i = 1; i <= 5; i++) {
+        stickyImages[`sticky${i}`] = loadImage(`images/stickies/sticky${i}.png`);
     }
-
-    // Load the first 5 sticky notes in random order
-    for (let i = 0; i < availableStickies.length; i++) {
-        stickyImages[`sticky${i + 1}`] = loadImage(`images/stickies/sticky${availableStickies[i]}.png`);
-        console.log(`sticky${i + 1}`);
-    }
-    console.log(stickyImages);
 }
 
 function setup() {
@@ -49,51 +32,28 @@ function setup() {
     // Initialize color
     letterColor = color(25, 150, 25);
 
-    const bottomRightX = width - stickySize - 20;
-    const bottomRightY = height - stickySize - 20;
+    // Create sticky notes with different images along the right side
+    const rightMargin = width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
+    const maxStaggerOffset = (width - rightMargin - stickySize) / 2;
+    const staggerOffset = maxStaggerOffset * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
     
-    // Create all sticky images first
-    const allStickyImages = [];
-    for (let i = 1; i <= availableStickies.length; i++) {
-        if (stickyImages[`sticky${i}`]) {
-            allStickyImages.push(stickyImages[`sticky${i}`]);
-        }
+    // Define vertical range for sticky notes
+    const minY = height * 0.2;  // Start at 40% of screen height
+    const maxY = height * 0.7;  // End at 80% of screen height
+    
+    for (let i = 1; i <= 5; i++) {
+        // Alternate between more right and more left, ensuring we stay within bounds
+        const baseX = rightMargin + (width - rightMargin) / 2;
+        const x = i % 2 === 0
+            ? baseX - staggerOffset  // Even numbered stickies go more left
+            : baseX + staggerOffset / 2; // Odd numbered stickies go more right
+            
+        // Map the index (1-5) to a y position between minY and maxY
+        const normalizedIndex = (i - 1) / 4; // Convert 1-5 to 0-1
+        const y = lerp(minY, maxY, normalizedIndex);
+        
+        stickies.push(new Sticky(stickyImages[`sticky${i}`], x, y));
     }
-    
-    // Start with ONLY the first sticky in the corner
-    stickies = [];
-    if (allStickyImages.length > 0) {
-        stickies.push(new Sticky(allStickyImages[0], bottomRightX, bottomRightY));
-    }
-    
-    // Put the rest in the queue
-    stickyQueue = [];
-    for (let i = 1; i < allStickyImages.length; i++) {
-        stickyQueue.push(allStickyImages[i]);
-    }
-    
-    // Rest of your setup code...
-}
-    
-    /* Initialize stickies array
-    stickies = [];
-    
-    // Add just the first sticky to start with
-    if (allStickyImages.length > 0) {
-        stickies.push(new Sticky(allStickyImages[0], bottomRightX, bottomRightY));
-        console.log("Added first sticky to display"); // Debug log
-    }
-    
-    // Initialize the queue with the rest
-    stickyQueue = [];
-    for (let i = 1; i < allStickyImages.length; i++) {
-        stickyQueue.push(allStickyImages[i]);
-        console.log(`Added image ${i+1} to queue`); // Debug log
-    }
-    
-    // Rest of your setup code...
-}*/
-
 
     // p5.PolySynth
     try {
@@ -307,46 +267,16 @@ function drawGuided() {
                 // Get the character and duration
                 const [char, duration] = guidedNoteSequence[guidedCurrentNoteIndex];
 
-                // Skip shift key presses
-                if (char !== 'Shift') {
-                    // Handle Enter character
-                    if (char === 'Enter') {
-                        guidedLetterX = margin / 2 + 60;
-                        guidedLetterY += leading;
-                        letters += '\n';
-                        numberOfEnters++;
-
-                        checkAndScrollCanvas();
-
-                    } else if (char === 'Backspace') {
-                        // Handle backspace by removing the last character
-                        if (letters.length > 0) {
-                            // Remove the last character from the display text
-                            guidedTypedText = guidedTypedText.slice(0, -1);
-                            letters = letters.slice(0, -1);
-
-                            // Remove the last typed letter from visualization
-                            if (typedLetters.length > 0) {
-                                typedLetters.pop();
-                            }
-
-                            // Update cursor position
-                            if (guidedLetterX > margin / 2 + 60) {
-                                guidedLetterX -= textWidth(letters.slice(-1));
-                            } else if (numberOfEnters > 0) {
-                                // If we're at the start of a line, move up a line
-                                numberOfEnters--;
-                                guidedLetterY -= leading;
-                                // Find the last line's width
-                                const lastNewlineIndex = letters.lastIndexOf('\n');
-                                const lastLine = letters.slice(lastNewlineIndex + 1);
-                                guidedLetterX = margin / 2 + 60 + textWidth(lastLine);
-                            }
-                        }
-                    } else {
-                        // Add character to display text
-                        guidedTypedText += char;
-                        letters += char;
+                // Handle Enter character
+                if (char === 'Enter') {
+                    guidedLetterX = margin / 2 + 60;
+                    guidedLetterY += leading;
+                    letters += '\n';
+                    numberOfEnters++;
+                } else {
+                    // Add character to display text
+                    guidedTypedText += char;
+                    letters += char;
 
                         // Create a TypedLetter for visualization
                         textSize(textsize);
@@ -355,17 +285,14 @@ function drawGuided() {
                         // Update position for next letter
                         guidedLetterX += textWidth(char);
 
-                        // Check if we need to wrap to next line
-                        if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
-                            guidedLetterX = margin / 2 + 60;
-                            guidedLetterY += leading;
-                            letters += '\n';
-                            numberOfEnters++;
-
-                            checkAndScrollCanvas();
-
-                        }
+                    // Check if we need to wrap to next line
+                    if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                        guidedLetterX = margin / 2 + 60;
+                        guidedLetterY += leading;
+                        letters += '\n';
+                        numberOfEnters++;
                     }
+                }
 
                     // If the character is in the notes map, play the note
                     if (char in notesMap) {
@@ -505,21 +432,17 @@ function drawFreeplay() {
 
     background(backgroundColor);
 
-    let zoomedSticky = null;
-    let cornerSticky = null;
-    
+    // Sort stickies so the hovered one is drawn last (on top)
+    const sortedStickies = [...stickies].sort((a, b) => {
+        if (a === Sticky.currentlyHovered) return 1;
+        if (b === Sticky.currentlyHovered) return -1;
+        return 0;
+    });
+
+    // Update and display sticky notes
     for (let sticky of stickies) {
-        if (sticky.isZoomed) {
-            zoomedSticky = sticky;
-        } else {
-            cornerSticky = sticky;
-        }
-    }
-    
-    // Draw the corner sticky first (if any)
-    if (cornerSticky) {
-        cornerSticky.update();
-        cornerSticky.display();
+        sticky.update();
+        sticky.display();
     }
     
     // Draw the zoomed sticky on top if any

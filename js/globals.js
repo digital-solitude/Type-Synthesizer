@@ -115,6 +115,8 @@ const notesMap = {
 
 const useMilliseconds = true;
 
+const useMilliseconds = true;
+
 // note sequence with associated timing
 const guidedNoteSequence = [
 
