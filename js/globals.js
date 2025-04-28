@@ -32,6 +32,9 @@ let preventTyping = false;
 const MAX_TEXT_WIDTH_PERCENTAGE = 0.8;
 const MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY = 0.7;
 
+// Variable to track text sent to Arena
+let lastSentIndex = 0;
+
 let letterColor; // Will be initialized in setup
 
 let typingText = "";
@@ -112,8 +115,6 @@ const notesMap = {
     'G': 'F#5', 'H': 'G#5', 'J': 'A#5', 'K': 'B5', 'L': 'C#6', 'Z': 'D#6', 'X': 'E6',
     'C': 'F#6', 'V': 'G#6', 'B': 'A#6', 'N': 'B6', 'M': 'C#7',
 };
-
-const useMilliseconds = true;
 
 const useMilliseconds = true;
 
@@ -307,7 +308,6 @@ const guidedNoteSequence = [
     ['d', 583.5],
     ['.', 6607.2],
     
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
                         ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
                         ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
                         ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],

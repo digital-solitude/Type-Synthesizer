@@ -45,6 +45,10 @@ canvas {
     right: auto;
 }
 
+.page-title:hover {
+    cursor: pointer;
+}
+
 /* Play button */
 .play-button {
     position: fixed;

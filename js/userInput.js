@@ -149,8 +149,22 @@ function handleStoryKeyPressed() {
         }
     }
     else if (key === 'Enter' || key === 'Return') {
+        // Extract text typed since the last Enter
+        const textToSend = letters.substring(lastSentIndex).trim();
+
+        // Send to Arena if there's actually new text
+        if (textToSend.length > 0) {
+            appendToArenaBlock(textToSend);
+            console.log(`Sent to Arena: "${textToSend}"`);
+        }
+
+        // Update the last sent index *after* potential send
+        lastSentIndex = letters.length; // Current end before adding newline
+
+        // Add the newline *after* extracting the text
         letters += "\n";
         numberOfEnters++;
+        lastSentIndex++; // Account for the added newline character
 
         // Calculate new cursor position after Enter
         let newY = margin / 2 + 60 + numberOfEnters * leading;

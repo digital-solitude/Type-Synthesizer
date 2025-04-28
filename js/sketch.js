@@ -5,24 +5,59 @@
  * setup(), draw(), windowResized(), and other top-level
  * drawing functions that define the "game loop".
  ******************************************************/
-console.log('hello');
-window.gameState = gameState;
 
-function preload() {
-    // Load all sticky note images
-    for (let i = 1; i <= 5; i++) {
-        stickyImages[`sticky${i}`] = loadImage(`images/stickies/sticky${i}.png`);
+let canvasElement; // To hold the p5 canvas element
+let introImage;
+
+// State Management & Sticky Notes
+let cornerSticky = null;
+let zoomedSticky = null;
+let allStickyImages = []; // Holds all loaded p5.Image objects
+
+// Game State
+window.gameState = "intro"; // Ensure gameState is globally accessible via window
+
+// Helper function for shuffling arrays
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }
 
+function preload() {
+
+    introImage = loadImage('images/background.png');
+
+    // Define available sticky note numbers
+    const availableStickies = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+    // Shuffle the array to get random order
+    shuffleArray(availableStickies);
+
+    // Load all sticky images into allStickyImages array
+    allStickyImages = []; // Clear before loading
+    console.log("Loading sticky images...");
+    for (const imgNum of availableStickies) {
+        try {
+            let img = loadImage(`images/stickies/sticky${imgNum}.png`);
+            allStickyImages.push(img);
+        } catch (error) {
+            console.error(`Failed to load image images/stickies/sticky${imgNum}.png:`, error);
+        }
+    }
+    console.log(`Loaded ${allStickyImages.length} sticky images.`);
+    // stickyImages map is no longer needed with this approach
+}
+
 function setup() {
+
     window.gameState = "intro";
 
-
-    appendToArenaBlock('test');
+    //appendToArenaBlock('test');
 
     // Creates a canvas that fills the entire browser window
-    createCanvas(windowWidth, windowHeight);
+    canvasElement = createCanvas(windowWidth, windowHeight); // Store the canvas element
 
     // Set text properties
     textSize(textsize);
@@ -32,28 +67,33 @@ function setup() {
     // Initialize color
     letterColor = color(25, 150, 25);
 
-    // Create sticky notes with different images along the right side
-    const rightMargin = width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
-    const maxStaggerOffset = (width - rightMargin - stickySize) / 2;
-    const staggerOffset = maxStaggerOffset * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
-    
-    // Define vertical range for sticky notes
-    const minY = height * 0.2;  // Start at 40% of screen height
-    const maxY = height * 0.7;  // End at 80% of screen height
-    
-    for (let i = 1; i <= 5; i++) {
-        // Alternate between more right and more left, ensuring we stay within bounds
-        const baseX = rightMargin + (width - rightMargin) / 2;
-        const x = i % 2 === 0
-            ? baseX - staggerOffset  // Even numbered stickies go more left
-            : baseX + staggerOffset / 2; // Odd numbered stickies go more right
-            
-        // Map the index (1-5) to a y position between minY and maxY
-        const normalizedIndex = (i - 1) / 4; // Convert 1-5 to 0-1
-        const y = lerp(minY, maxY, normalizedIndex);
-        
-        stickies.push(new Sticky(stickyImages[`sticky${i}`], x, y));
+    const bottomRightX = width - stickySize - 20;
+    const bottomRightY = height - stickySize - 20;
+
+    // Initialize sticky state
+    stickyQueue = [...allStickyImages]; // Copy all loaded images into the queue
+    cornerSticky = null; // Will hold the Sticky object in the corner
+    zoomedSticky = null; // Will hold the zoomed Sticky object
+
+    // Set the first corner sticky if images are available
+    if (stickyQueue.length > 0) {
+        const firstImg = stickyQueue.shift(); // Take the first image from the queue
+        if (firstImg) {
+             cornerSticky = new Sticky(firstImg, bottomRightX, bottomRightY);
+             console.log("Initial corner sticky set.");
+        } else {
+             console.error("First image from queue was undefined.");
+        }
+    } else {
+        console.warn("No sticky images loaded or queue is empty, cannot set initial corner sticky.");
     }
+
+    // Remove old stickies array initialization
+    // stickies = [];
+    // if (allStickyImages.length > 0) { ... } // Old logic removed
+    // stickyQueue = []; // Old queue logic removed
+    // for (let i = 1; i < allStickyImages.length; i++) { ... } // Old logic removed
+
 
     // p5.PolySynth
     try {
@@ -107,10 +147,12 @@ function setup() {
     }
 
     // Create the blinking cursor
-    cursor = new Cursor();
+    blinkingCursor = new Cursor();
 
     // calculate border inset
     borderInsetPixels = cmToPixels(0.65)
+}
+
 function draw() {
     switch (gameState) {
         case "intro":
@@ -142,10 +184,6 @@ function drawBorder(backgroundColor) {
     rect(borderInsetPixels, borderInsetPixels, width - borderInsetPixels * 2, height - borderInsetPixels * 2);
 }
 
-
-
-
-
 function drawIntro() {
     // Use the same color transition logic as freeplay
 
@@ -171,7 +209,7 @@ function drawIntro() {
     
     // Main title text - use formatting from guided mode
     textStyle(BOLD);
-    text("Sally’s Helpers", width / 2, yPos);
+    text("Sally's Helpers", width / 2, yPos);
     yPos += leading * 1;  // Increased space after title
     
     textStyle(ITALIC);
@@ -180,14 +218,33 @@ function drawIntro() {
     
     // Draw the small PNG image directly below "a distributed lament"
     let imgHeight = 0;
+    let isHoveringImage = false; // Flag to track hover state
+
     if (introImage) {
         // Define a reasonable size for the image (adjust as needed)
         const imgWidth = 150;  // Width in pixels
         imgHeight = imgWidth * (introImage.height / introImage.width);  // Keep aspect ratio
-        
+
+        // Calculate image position
+        const imgX = width / 2;
+        const imgY = yPos + imgHeight / 2;
+
+        // Check if mouse is hovering over the image
+        if (mouseX > imgX - imgWidth / 2 && mouseX < imgX + imgWidth / 2 &&
+            mouseY > imgY - imgHeight / 2 && mouseY < imgY + imgHeight / 2) {
+            isHoveringImage = true;
+        }
+
         imageMode(CENTER);
-        image(introImage, width / 2, yPos + imgHeight / 2, imgWidth, imgHeight);
+        image(introImage, imgX, imgY, imgWidth, imgHeight);
         imageMode(CORNER);  // Reset to default mode
+    }
+
+    // Change canvas CSS style based on hover state
+    if (isHoveringImage) {
+        canvasElement.style('cursor', 'pointer'); // Set CSS cursor to pointer
+    } else {
+        canvasElement.style('cursor', 'default'); // Reset CSS cursor to default
     }
 
     // Update yPos after image to continue the text below it
@@ -209,9 +266,7 @@ function drawIntro() {
     yPos += leading * 2;  // Add space before the image
 
     textStyle(NORMAL);
-
 }
-
 
 function loadGuided() {
     // Initialize guided mode variables
@@ -253,9 +308,9 @@ function drawGuided() {
     }
 
     // Display cursor at current position
-    cursor.update();
+    blinkingCursor.update();
    //
-   // cursor.display(guidedLetterX, guidedLetterY - scrollOffset);
+   // blinkingCursor.display(guidedLetterX, guidedLetterY - scrollOffset);
 
     const currentTime = millis();
 
@@ -267,16 +322,46 @@ function drawGuided() {
                 // Get the character and duration
                 const [char, duration] = guidedNoteSequence[guidedCurrentNoteIndex];
 
-                // Handle Enter character
-                if (char === 'Enter') {
-                    guidedLetterX = margin / 2 + 60;
-                    guidedLetterY += leading;
-                    letters += '\n';
-                    numberOfEnters++;
-                } else {
-                    // Add character to display text
-                    guidedTypedText += char;
-                    letters += char;
+                // Skip shift key presses
+                if (char !== 'Shift') {
+                    // Handle Enter character
+                    if (char === 'Enter') {
+                        guidedLetterX = margin / 2 + 60;
+                        guidedLetterY += leading;
+                        letters += '\n';
+                        numberOfEnters++;
+
+                        checkAndScrollCanvas();
+
+                    } else if (char === 'Backspace') {
+                        // Handle backspace by removing the last character
+                        if (letters.length > 0) {
+                            // Remove the last character from the display text
+                            guidedTypedText = guidedTypedText.slice(0, -1);
+                            letters = letters.slice(0, -1);
+
+                            // Remove the last typed letter from visualization
+                            if (typedLetters.length > 0) {
+                                typedLetters.pop();
+                            }
+
+                            // Update cursor position
+                            if (guidedLetterX > margin / 2 + 60) {
+                                guidedLetterX -= textWidth(letters.slice(-1));
+                            } else if (numberOfEnters > 0) {
+                                // If we're at the start of a line, move up a line
+                                numberOfEnters--;
+                                guidedLetterY -= leading;
+                                // Find the last line's width
+                                const lastNewlineIndex = letters.lastIndexOf('\n');
+                                const lastLine = letters.slice(lastNewlineIndex + 1);
+                                guidedLetterX = margin / 2 + 60 + textWidth(lastLine);
+                            }
+                        }
+                    } else {
+                        // Add character to display text
+                        guidedTypedText += char;
+                        letters += char;
 
                         // Create a TypedLetter for visualization
                         textSize(textsize);
@@ -285,14 +370,17 @@ function drawGuided() {
                         // Update position for next letter
                         guidedLetterX += textWidth(char);
 
-                    // Check if we need to wrap to next line
-                    if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
-                        guidedLetterX = margin / 2 + 60;
-                        guidedLetterY += leading;
-                        letters += '\n';
-                        numberOfEnters++;
+                        // Check if we need to wrap to next line
+                        if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                            guidedLetterX = margin / 2 + 60;
+                            guidedLetterY += leading;
+                            letters += '\n';
+                            numberOfEnters++;
+
+                            checkAndScrollCanvas();
+
+                        }
                     }
-                }
 
                     // If the character is in the notes map, play the note
                     if (char in notesMap) {
@@ -404,7 +492,6 @@ function drawGuided() {
         }
     }
     drawBorder(backgroundColor);
-
 }
 
 function loadFreeplay() {
@@ -416,6 +503,7 @@ function loadFreeplay() {
     numberOfEnters = 0;
     scrollOffset = 0;
     currentHintTextIndex = 0;  // Reset to the first hint text
+    lastSentIndex = 0; // Initialize index for Arena tracking
 
     cursorCeiling = margin / 2 + 60;
 
@@ -431,26 +519,22 @@ function drawFreeplay() {
     let { backgroundColor, textColor } = transitionColors();
 
     background(backgroundColor);
+    // drawBorder(backgroundColor);
 
-    // Sort stickies so the hovered one is drawn last (on top)
-    const sortedStickies = [...stickies].sort((a, b) => {
-        if (a === Sticky.currentlyHovered) return 1;
-        if (b === Sticky.currentlyHovered) return -1;
-        return 0;
-    });
-
-    // Update and display sticky notes
-    for (let sticky of stickies) {
-        sticky.update();
-        sticky.display();
+    // --- Start Sticky Drawing ---
+    // Draw the corner sticky first (if it exists)
+    if (cornerSticky) {
+        cornerSticky.update(); // Assume update handles hover effects etc.
+        cornerSticky.display();
     }
-    
-    // Draw the zoomed sticky on top if any
+
+    // Draw the zoomed sticky on top (if it exists)
     if (zoomedSticky) {
-        zoomedSticky.update();
+        // Ensure zoomed sticky displays correctly (may need specific logic in Sticky class)
+        zoomedSticky.update(); // Update position/size for zoom effect
         zoomedSticky.display();
     }
-    
+    // --- End Sticky Drawing ---
 
     // If enough letters are typed, enable wiggling
     if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
@@ -494,8 +578,8 @@ function drawFreeplay() {
     }
 
     // Update & display the cursor
-    cursor.update();
-    cursor.display(cursorX, cursorY - scrollOffset);
+    blinkingCursor.update();
+    blinkingCursor.display(cursorX, cursorY - scrollOffset);
 
     drawBorder(backgroundColor);
 }
@@ -583,7 +667,6 @@ function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
 
-
 function appendToArenaBlock(text) {
     fetch('arena.php', {
         method: 'POST',
@@ -596,7 +679,6 @@ function appendToArenaBlock(text) {
         })
         .catch(err => console.error('Error updating block:', err));
 }
-
 
 function cmToPixels(cm) {
     // Get screen DPI using a hidden div method
@@ -629,82 +711,110 @@ function mouseMoved() {
 }
 
 function mousePressed() {
-
-    if (introImage) {
+    // Handle intro click specifically for the image
+    if (gameState === "intro") {
+        // Calculate image bounds based on drawIntro logic
         const imgWidth = 150;
         const imgHeight = imgWidth * (introImage.height / introImage.width);
         const imgX = width / 2;
-        const imgY = height / 2 - 270 + leading * 3;  // Y-position of the image
-        
+        // Approximate Y position calculation from drawIntro
+        let yPos = height / 2 - 270;
+        yPos += leading * 1; // After "Sally's Helpers"
+        yPos += leading * 1; // After "a distributed lament"
+        const imgY = yPos + imgHeight / 2; // Center Y of the image
+
         if (mouseX > imgX - imgWidth / 2 && mouseX < imgX + imgWidth / 2 &&
             mouseY > imgY - imgHeight / 2 && mouseY < imgY + imgHeight / 2) {
-            // Redirect to the info page (change this URL as needed)
+            console.log("Intro image clicked, redirecting to info.html");
             window.location.href = "info.html";
+            return; // Prevent further actions
         }
-    }
-    // First, check if any sticky is currently zoomed
-    let zoomedStickyIndex = -1;
-    for (let i = 0; i < stickies.length; i++) {
-        if (stickies[i].isZoomed) {
-            zoomedStickyIndex = i;
-            break;
-        }
-    }
-    
-    // If a zoomed sticky was clicked, simply unzoom it and return it to corner
-    if (zoomedStickyIndex >= 0 && stickies[zoomedStickyIndex].checkClick(mouseX, mouseY)) {
-        const sticky = stickies[zoomedStickyIndex];
-        sticky.isZoomed = false;
-        Sticky.currentlyZoomed = null;
-        
-        // Just reset its position to the corner
-        const bottomRightX = width - stickySize - 20;
-        const bottomRightY = height - stickySize - 20;
-        sticky.x = bottomRightX;
-        sticky.y = bottomRightY;
-        
+        // If not clicking the image during intro, do nothing else in mousePressed
         return;
     }
-    
-    // If no zoomed sticky was clicked, check the corner sticky
-    for (let i = 0; i < stickies.length; i++) {
-        if (!stickies[i].isZoomed && stickies[i].checkClick(mouseX, mouseY)) {
-            const sticky = stickies[i];
-            
-            // Zoom this sticky
-            sticky.isZoomed = true;
-            Sticky.currentlyZoomed = sticky;
-            
-            // Remove this sticky from the corner
-            stickies.splice(i, 1);
-            
-            // Add the zoomed sticky back to the stickies array (it's now zoomed)
-            stickies.push(sticky);
-            
-            // Get the next sticky from the queue
-            // If queue is empty, restart the cycle
-            if (stickyQueue.length === 0) {
-                // Rebuild the queue with all sticky images except the one that's zoomed
-                for (let j = 1; j <= stickies.length; j++) {
-                    const imgKey = `sticky${j}`;
-                    // Avoid adding the currently zoomed sticky
-                    if (stickyImages[imgKey] && stickyImages[imgKey] !== sticky.img) {
-                        stickyQueue.push(stickyImages[imgKey]);
-                    }
+
+    // Only handle sticky clicks if in freeplay mode
+    if (gameState !== "freeplay") {
+        return;
+    }
+
+    const bottomRightX = width - stickySize - 20;
+    const bottomRightY = height - stickySize - 20;
+
+    // 1. Check click on ZOOMED sticky first
+    if (zoomedSticky && zoomedSticky.checkClick(mouseX, mouseY)) {
+        console.log("Clicked zoomed sticky. Unzooming.");
+        // Action: Unzoom the sticky. It becomes the new corner sticky.
+        // The *old* corner sticky goes back into the queue.
+
+        // Put the image from the current corner sticky back into the queue (if one exists)
+        if (cornerSticky && cornerSticky.img) {
+            stickyQueue.push(cornerSticky.img);
+            shuffleArray(stickyQueue); // Keep the queue randomized
+            console.log("Added old corner image back to queue.");
+        } else {
+            console.log("No corner sticky existed to return to queue.");
+        }
+
+        // Make the previously zoomed sticky the new corner sticky
+        zoomedSticky.isZoomed = false; // Update its state
+        // Reset its position to the corner (Sticky class might handle this based on isZoomed)
+        zoomedSticky.x = bottomRightX;
+        zoomedSticky.y = bottomRightY;
+        cornerSticky = zoomedSticky; // It's now the corner sticky
+        zoomedSticky = null; // Nothing is zoomed anymore
+        Sticky.currentlyZoomed = null; // Update static tracker if used
+
+        console.log("Unzoom complete. New corner sticky is set.");
+        return; // Click handled
+    }
+
+    // 2. Check click on CORNER sticky (only if not clicking zoomed)
+    if (cornerSticky && cornerSticky.checkClick(mouseX, mouseY)) {
+        console.log("Clicked corner sticky. Zooming.");
+        // Action: Zoom the corner sticky. Get a new corner sticky from the queue.
+
+        const clickedCornerSticky = cornerSticky;
+
+        // Promote the corner sticky to zoomed state
+        clickedCornerSticky.isZoomed = true;
+        // Let the Sticky class handle visual zoom animation/positioning
+        zoomedSticky = clickedCornerSticky;
+        Sticky.currentlyZoomed = zoomedSticky; // Update static tracker if used
+
+        // Get the next image from the queue for the new corner sticky
+        if (stickyQueue.length > 0) {
+            const newCornerImg = stickyQueue.shift();
+            cornerSticky = new Sticky(newCornerImg, bottomRightX, bottomRightY);
+            console.log("Set new corner sticky from queue.");
+        } else {
+            // Queue is empty. Refill it with all available images *except* the one currently zoomed.
+            console.log("Queue empty. Refilling...");
+            stickyQueue = []; // Clear just in case
+            for (const img of allStickyImages) {
+                // Add all images that aren't the one we just zoomed
+                if (img !== zoomedSticky.img) {
+                    stickyQueue.push(img);
                 }
             }
-            
-            // Display the next sticky in the corner 
+            shuffleArray(stickyQueue); // Randomize the refilled queue
+
+            // Try to get a new corner sticky again after refill
             if (stickyQueue.length > 0) {
-                const bottomRightX = width - stickySize - 20;
-                const bottomRightY = height - stickySize - 20;
-                const newStickyImg = stickyQueue.shift();
-                stickies.push(new Sticky(newStickyImg, bottomRightX, bottomRightY));
+                const newCornerImg = stickyQueue.shift();
+                cornerSticky = new Sticky(newCornerImg, bottomRightX, bottomRightY);
+                console.log("Set new corner sticky after refill.");
+            } else {
+                // This happens if there was only 1 image total.
+                cornerSticky = null; // No possible corner sticky
+                console.warn("Could not set new corner sticky after refill (only 1 image available?).");
             }
-            
-            return;
         }
+        return; // Click handled
     }
+
+    // Optional: Log if a click happened but didn't hit either interactive sticky
+    // console.log("Mouse press in freeplay, but not on corner or zoomed sticky.");
 }
 
 document.addEventListener('DOMContentLoaded', function() {

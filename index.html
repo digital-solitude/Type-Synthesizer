@@ -13,7 +13,7 @@
   </head>
 
   <body>
-   <div class="page-title">ANNOTATIONS</div> 
+    <div class="page-title">ANNOTATIONS</div>
 
     <!-- Mobile warning message -->
     <div class="mobile-warning" id="mobile-warning">
@@ -31,35 +31,35 @@
 
     <script>
       // Add click event listener to the page title
-      document.querySelector(".page-title",).addEventListener("click", () => {
+      document.querySelector(".page-title").addEventListener("click", () => {
         window.open("info.html", "_blank");
       });
-    
+
       // Check game state periodically and update page title visibility
-      document.addEventListener('DOMContentLoaded', function() {
-        setInterval(function() {
-          const pageTitle = document.querySelector('.page-title');
+      document.addEventListener("DOMContentLoaded", function () {
+        setInterval(function () {
+          const pageTitle = document.querySelector(".page-title");
           // Access gameState from sketch.js
-          if (typeof window.gameState !== 'undefined') {
+          if (typeof window.gameState !== "undefined") {
             if (window.gameState === "freeplay") {
-              pageTitle.style.display = 'none';
+              pageTitle.style.display = "none";
             } else {
-              pageTitle.style.display = 'block';
+              pageTitle.style.display = "block";
             }
           }
         }, 1000); // Check every 100ms
       });
-    
+
       // Mobile detection
       function isMobileDevice() {
         // Your existing mobile detection code...
       }
-    
+
       // Show warning if on mobile
       if (isMobileDevice()) {
         document.getElementById("mobile-warning").style.display = "block";
       }
-    
+
       // Allow users to continue anyway
       document
         .getElementById("continue-anyway")
@@ -78,8 +78,8 @@
     <script src="./js/sketch.js"></script>
 
     <!-- A "Play" image or anything else you want -->
-     <a href="info.html">
-    <img src="./images/background.png" alt="Play" class="play-button" />
+    <a href="info.html">
+      <img src="./images/background.png" alt="Play" class="play-button" />
     </a>
   </body>
 </html>
