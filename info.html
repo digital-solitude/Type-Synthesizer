@@ -55,45 +55,43 @@
             text-align: right;
         }
 
-        .menu-item {
+        /* Menu items container for better control */
+        .menu-items-container {
             position: absolute;
+            top: 2cm;
+            left: 2cm;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2cm; /* Space between menu items */
+            width: calc(100% - 4cm);
+        }
+
+        .menu-item {
             cursor: pointer;
             pointer-events: all;
             /* Re-enable pointer events for menu items */
-        }
-
-        /* Left menu positioning - first image */
-        .menu-item.left {
-            top: 2cm;
-            /* Buffer from the top */
-            left: 2cm;
-            /* Buffer from the left */
-            text-align: left;
-        }
-
-        /* Right menu positioning - second image (next to first) */
-        .menu-item.right {
-            top: 2cm;
-            /* Buffer from the top, aligned with first image */
-            left: 12cm;
-            /* Position to the right of the left image with spacing */
-            text-align: left;
+            width: 300px; /* Fixed width at full size */
+            max-width: 300px;
+            flex: 0 0 auto;
         }
 
         .menu-image-container {
-            width: 300px;
-            /* Fixed width for all image containers */
-            height: 200px;
-            /* Fixed height for all image containers */
+            width: 100%;
+            height: 0;
+            padding-bottom: 66.67%; /* Maintains 3:2 aspect ratio */
+            position: relative;
             overflow: hidden;
         }
 
         .menu-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             /* This will maintain aspect ratio while filling the container */
-            transition: transform 0.3s ease;
+            transition: transform 0.4s ease;
             border: 2px solid transparent;
         }
 
@@ -109,20 +107,36 @@
             color: #555;
         }
 
+        /* Introduction text styling */
+        .intro-text {
+            position: absolute;
+            top: 9cm;
+            left: 2cm;
+            width: 38%; /* 70% of its original width */
+            max-width: 1120px; /* 70% of 1600px */
+            padding: 20px;
+            background-color: #f0f0f050;
+            border-radius: 5px;
+            z-index: 90;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
         /* Common content area for both menu items */
         .content-area {
             position: absolute;
             top: 9cm;
             /* Position below both images with some space */
             left: 2cm;
-            width: 1600px;
-            /* Wide enough for content */
+            width: calc(100% - 4cm); /* Dynamic width with padding on both sides */
+            max-width: 1600px; /* Maximum width for larger screens */
             max-height: 0;
             overflow: hidden;
             background-color: #f0f0f050;
             transition: max-height 0.5s ease;
             border-radius: 5px;
             z-index: 100;
+            box-sizing: border-box;
         }
 
         .content-area.active {
@@ -152,8 +166,9 @@
             position: fixed;
             bottom: 2cm;
             right: 2cm;
-            width: 200px;
-            /* Adjust size as needed */
+            width: 15%; /* Relative width */
+            max-width: 150px; /* Maximum size */
+            min-width: 100px; /* Minimum size */
             height: auto;
             cursor: pointer;
             z-index: 1000;
@@ -168,6 +183,102 @@
             line-height: 1.6;
             margin-bottom: 15px;
         }
+
+        /* Media queries for responsive design */
+        @media (max-width: 1200px) {
+            .menu-items-container {
+                gap: 1.5cm;
+            }
+            
+            .menu-item {
+                width: 250px;
+                max-width: 250px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .menu-items-container {
+                gap: 1cm;
+            }
+            
+            .menu-item {
+                width: 220px;
+                max-width: 220px;
+            }
+            
+            .intro-text, .content-area {
+                left: 1.5cm;
+                width: calc(100% - 3cm);
+            }
+            
+            .page-title {
+                right: 1.5cm;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body::before {
+                top: 0.5cm;
+                right: 0.5cm;
+                bottom: 0.5cm;
+                left: 0.5cm;
+            }
+            
+            .menu-container {
+                top: 0.25cm;
+                left: 0.25cm;
+                right: 0.25cm;
+            }
+            
+            .menu-items-container {
+                top: 1.5cm;
+                left: 0.5cm;
+                width: calc(100% - 1cm);
+                flex-direction: column;
+                gap: 1cm;
+            }
+            
+            .menu-item {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .intro-text {
+                top: 12cm;
+                left: 0.5cm;
+                width: calc(100% - 1cm);
+            }
+            
+            .content-area {
+                top: 12cm;
+                left: 0.5cm;
+                width: calc(100% - 1cm);
+            }
+            
+            .page-title {
+                top: 0.5cm;
+                right: 0.5cm;
+            }
+            
+            .play-button {
+                bottom: 1cm;
+                right: 1cm;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-items-container {
+                top: 1.2cm;
+            }
+            
+            .menu-item {
+                max-width: 100%;
+            }
+            
+            .intro-text, .content-area {
+                top: 11cm;
+            }
+        }
     </style>
 </head>
 
@@ -176,24 +287,44 @@
         <!-- Page Title -->
         <div class="page-title">
             <color="green">
-                </color><u>PHANTOMS/CITATIONS</u>
+                </color><u>ANNOTATIONS</u>
         </div>
 
-        <!-- Sally Menu Item - Left Top Position -->
-        <div class="menu-item left" onclick="toggleMenu(this, 'sally-content')">
-            <div class="menu-image-container">
-                <img src="./images/Francis101.jpg" alt="Sally at Xerox PARC" class="menu-image">
+        <!-- Menu items container to control layout -->
+        <div class="menu-items-container">
+            <!-- Sally Menu Item -->
+            <div class="menu-item" onclick="toggleMenu(this, 'sally-content')">
+                <div class="menu-image-container">
+                    <img src="./images/Francis101.jpg" alt="Sally at Xerox PARC" class="menu-image">
+                </div>
+                <div class="caption">Mrs Hope Simmons at the 1857 Francis typewriter</div>
             </div>
-            <div class="caption">Mrs Hope Simmons at the 1857 Francis typewriter</div>
-        </div>
 
-        <!-- Literary Piano Menu Item - Right Top Position (now next to the first one) -->
-        <div class="menu-item right" onclick="toggleMenu(this, 'piano-content')">
-            <div class="menu-image-container">
-                <img src="./images/LiteraryPiano_PaulKlee.png" alt="The Literary Piano" class="menu-image">
+            <!-- Literary Piano Menu Item -->
+            <div class="menu-item" onclick="toggleMenu(this, 'piano-content')">
+                <div class="menu-image-container">
+                    <img src="./images/LiteraryPiano_PaulKlee.png" alt="The Literary Piano" class="menu-image">
+                </div>
+                <div class="caption">The Literary Piano by Paul Klee</div>
             </div>
-            <div class="caption">The Literary Piano by Paul Klee</div>
         </div>
+    </div>
+
+    <!-- Introduction text (displays by default) -->
+    <div class="intro-text" id="intro-text">
+        <p>We are all <strong>Sally's Helpers</strong>, made in the image of the first "model user" for the desktop 
+            computer. We sit, we look, we type... Can this once feminized labor of typing can help us reorient - 
+            become a tool for citation, a tool for embodiment? Drawing on many threads in the long history of 
+            computer labour, this project invites you to reflect on your relationship to your personal machine 
+            and the embodied experience of working on the computer...
+        <br>
+        <br> If you are returning to this experience and would like to start typing, press '3' at the intro screen. 
+           <br><br> What you type here becomes part of a collective compositional text, available <a href="https://www.are.na/block/35343437">here</a>
+        <br> If you would like to get in touch or add a sticky note of your own, write <a href ="mailto:anishadaybaid@gmail.com"> here </a>
+        <br>
+      
+      
+        </p>
     </div>
 
     <!-- Common content area for both menus -->
@@ -279,6 +410,7 @@
         function toggleMenu(element, contentId) {
             const contentArea = document.getElementById('content-area');
             const contentElement = document.getElementById(contentId);
+            const introText = document.getElementById('intro-text');
             const isCurrentlyActive = element.classList.contains('active');
 
             // Remove active class from all menu items
@@ -292,14 +424,21 @@
             });
 
             if (isCurrentlyActive) {
-                // If this menu was already active, close everything
+                // If this menu was already active, close everything and show intro text
                 contentArea.classList.remove('active');
+                introText.style.display = 'block';
             } else {
                 // Activate the clicked menu item and show its content
                 element.classList.add('active');
                 contentArea.classList.add('active');
                 contentElement.classList.add('active');
+                introText.style.display = 'none'; // Hide intro text when showing other content
             }
+        }
+
+        // Make sure intro text is visible on page load
+        window.onload = function() {
+            document.getElementById('intro-text').style.display = 'block';
         }
     </script>
 </body>

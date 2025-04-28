@@ -5,15 +5,37 @@
  * setup(), draw(), windowResized(), and other top-level
  * drawing functions that define the "game loop".
  ******************************************************/
+console.log('hello');
+window.gameState = gameState;
 
 function preload() {
-    // Load all sticky note images
-    for (let i = 1; i <= 5; i++) {
-        stickyImages[`sticky${i}`] = loadImage(`images/stickies/sticky${i}.png`);
+
+    introImage = loadImage('images/background.png');
+
+
+    console.log('helloagain');
+
+    // Create an array of all available sticky note numbers
+    availableStickies = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13,14];
+
+    // Shuffle the array to get random order
+    for (let i = availableStickies.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableStickies[i], availableStickies[j]] = [availableStickies[j], availableStickies[i]];
     }
+
+    // Load the first 5 sticky notes in random order
+    for (let i = 0; i < availableStickies.length; i++) {
+        stickyImages[`sticky${i + 1}`] = loadImage(`images/stickies/sticky${availableStickies[i]}.png`);
+        console.log(`sticky${i + 1}`);
+    }
+    console.log(stickyImages);
 }
 
 function setup() {
+    window.gameState = "intro";
+
+
     appendToArenaBlock('test');
 
     // Creates a canvas that fills the entire browser window
@@ -27,28 +49,51 @@ function setup() {
     // Initialize color
     letterColor = color(25, 150, 25);
 
-    // Create sticky notes with different images along the right side
-    const rightMargin = width * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
-    const maxStaggerOffset = (width - rightMargin - stickySize) / 2;
-    const staggerOffset = maxStaggerOffset * MAX_TEXT_WIDTH_PERCENTAGE_FREEPLAY;
+    const bottomRightX = width - stickySize - 20;
+    const bottomRightY = height - stickySize - 20;
     
-    // Define vertical range for sticky notes
-    const minY = height * 0.2;  // Start at 40% of screen height
-    const maxY = height * 0.7;  // End at 80% of screen height
-    
-    for (let i = 1; i <= 5; i++) {
-        // Alternate between more right and more left, ensuring we stay within bounds
-        const baseX = rightMargin + (width - rightMargin) / 2;
-        const x = i % 2 === 0
-            ? baseX - staggerOffset  // Even numbered stickies go more left
-            : baseX + staggerOffset / 2; // Odd numbered stickies go more right
-            
-        // Map the index (1-5) to a y position between minY and maxY
-        const normalizedIndex = (i - 1) / 4; // Convert 1-5 to 0-1
-        const y = lerp(minY, maxY, normalizedIndex);
-        
-        stickies.push(new Sticky(stickyImages[`sticky${i}`], x, y));
+    // Create all sticky images first
+    const allStickyImages = [];
+    for (let i = 1; i <= availableStickies.length; i++) {
+        if (stickyImages[`sticky${i}`]) {
+            allStickyImages.push(stickyImages[`sticky${i}`]);
+        }
     }
+    
+    // Start with ONLY the first sticky in the corner
+    stickies = [];
+    if (allStickyImages.length > 0) {
+        stickies.push(new Sticky(allStickyImages[0], bottomRightX, bottomRightY));
+    }
+    
+    // Put the rest in the queue
+    stickyQueue = [];
+    for (let i = 1; i < allStickyImages.length; i++) {
+        stickyQueue.push(allStickyImages[i]);
+    }
+    
+    // Rest of your setup code...
+}
+    
+    /* Initialize stickies array
+    stickies = [];
+    
+    // Add just the first sticky to start with
+    if (allStickyImages.length > 0) {
+        stickies.push(new Sticky(allStickyImages[0], bottomRightX, bottomRightY));
+        console.log("Added first sticky to display"); // Debug log
+    }
+    
+    // Initialize the queue with the rest
+    stickyQueue = [];
+    for (let i = 1; i < allStickyImages.length; i++) {
+        stickyQueue.push(allStickyImages[i]);
+        console.log(`Added image ${i+1} to queue`); // Debug log
+    }
+    
+    // Rest of your setup code...
+}*/
+
 
     // p5.PolySynth
     try {
@@ -105,9 +150,7 @@ function setup() {
     cursor = new Cursor();
 
     // calculate border inset
-    borderInsetPixels = cmToPixels(1);
-}
-
+    borderInsetPixels = cmToPixels(0.65)
 function draw() {
     switch (gameState) {
         case "intro":
@@ -139,17 +182,76 @@ function drawBorder(backgroundColor) {
     rect(borderInsetPixels, borderInsetPixels, width - borderInsetPixels * 2, height - borderInsetPixels * 2);
 }
 
+
+
+
+
 function drawIntro() {
-    background(0);
+    // Use the same color transition logic as freeplay
 
-    fill(255);
+    document.querySelector('.page-title').style.display = 'none';
+
+    let { backgroundColor, textColor } = transitionColors();
+
+    background(backgroundColor);
+    drawBorder(backgroundColor);
+    
+    // Use letterColor for text - same as guided mode
+    fill(letterColor);
     textAlign(CENTER, CENTER);
-    // Simple prompt
-    textSize(20);
-    text("press any key", width / 2, height / 2);
+    
+    noStroke();
 
-    drawBorder(color(0, 0, 0));
+    // Set smaller text size (80% of original size)
+    textSize(textsize * 0.8);  
+    textFont('Consolas');  // Use the same font as guided mode
+    
+    // Calculate vertical spacing based on the same leading value as guided mode
+    let yPos = height / 2 - 270;  // Adjusted to center all content
+    
+    // Main title text - use formatting from guided mode
+    textStyle(BOLD);
+    text("Sally’s Helpers", width / 2, yPos);
+    yPos += leading * 1;  // Increased space after title
+    
+    textStyle(ITALIC);
+    text("a distributed lament", width / 2, yPos);
+    yPos += leading * 1;  // Adjusted space between subtitle and image
+    
+    // Draw the small PNG image directly below "a distributed lament"
+    let imgHeight = 0;
+    if (introImage) {
+        // Define a reasonable size for the image (adjust as needed)
+        const imgWidth = 150;  // Width in pixels
+        imgHeight = imgWidth * (introImage.height / introImage.width);  // Keep aspect ratio
+        
+        imageMode(CENTER);
+        image(introImage, width / 2, yPos + imgHeight / 2, imgWidth, imgHeight);
+        imageMode(CORNER);  // Reset to default mode
+    }
+
+    // Update yPos after image to continue the text below it
+    yPos += imgHeight + leading * 3;  // Adjust yPos after image
+    
+    // Description text
+    textStyle(NORMAL);
+    text("This experience requires sound, a keyboard, and your attention.", width / 2, yPos);
+    yPos += leading * 1  // Slightly more space before the requirements list
+    
+    // Requirements list
+    textStyle(ITALIC);
+    text("Please wear headphones and switch to fullscreen [F11], if possible.", width / 2, yPos);
+    yPos += leading * 2;  // More space between requirement and call to action
+    
+    // Call to action - use bold for emphasis
+    textStyle(BOLD);
+    text("When you are ready, press any key to begin.", width / 2, yPos);
+    yPos += leading * 2;  // Add space before the image
+
+    textStyle(NORMAL);
+
 }
+
 
 function loadGuided() {
     // Initialize guided mode variables
@@ -159,10 +261,16 @@ function loadGuided() {
     guidedSequenceComplete = false;
     guidedEndTime = 0;
 
+     // Add this line to update the global gameState variable
+     window.gameState = "guided";
+
     // Reset guided mode text display
     guidedTypedText = "";
     guidedLetterX = margin / 2 + 60;
     guidedLetterY = margin / 2 + 60;
+
+    // Initialize scrolling for guided mode
+    scrollOffset = 0;
 
     // Clear any existing typed letters
     typedLetters = [];
@@ -171,6 +279,9 @@ function loadGuided() {
 }
 
 function drawGuided() {
+
+    document.querySelector('.page-title').style.display = 'none';
+
     let { backgroundColor, textColor } = transitionColors();
 
     background(backgroundColor);
@@ -178,12 +289,13 @@ function drawGuided() {
     // Display existing typed letters (same as freeplay)
     for (let i = 0; i < typedLetters.length; i++) {
         typedLetters[i].update();
-        typedLetters[i].display();
+        typedLetters[i].display(0, -scrollOffset); // Apply scroll offset
     }
 
     // Display cursor at current position
     cursor.update();
-    cursor.display(guidedLetterX, guidedLetterY);
+   //
+   // cursor.display(guidedLetterX, guidedLetterY - scrollOffset);
 
     const currentTime = millis();
 
@@ -195,41 +307,76 @@ function drawGuided() {
                 // Get the character and duration
                 const [char, duration] = guidedNoteSequence[guidedCurrentNoteIndex];
 
-                // Handle Enter character
-                if (char === 'Enter') {
-                    guidedLetterX = margin / 2 + 60;
-                    guidedLetterY += leading;
-                    letters += '\n';
-                    numberOfEnters++;
-                } else {
-                    // Add character to display text
-                    guidedTypedText += char;
-                    letters += char;
-
-                    // Create a TypedLetter for visualization
-                    textSize(textsize);
-                    typedLetters.push(new TypedLetter(char, guidedLetterX, guidedLetterY));
-
-                    // Update position for next letter
-                    guidedLetterX += textWidth(char);
-
-                    // Check if we need to wrap to next line
-                    if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                // Skip shift key presses
+                if (char !== 'Shift') {
+                    // Handle Enter character
+                    if (char === 'Enter') {
                         guidedLetterX = margin / 2 + 60;
                         guidedLetterY += leading;
                         letters += '\n';
                         numberOfEnters++;
-                    }
-                }
 
-                // If the character is in the notes map, play the note
-                if (char in notesMap) {
-                    playNote(notesMap[char]);
+                        checkAndScrollCanvas();
+
+                    } else if (char === 'Backspace') {
+                        // Handle backspace by removing the last character
+                        if (letters.length > 0) {
+                            // Remove the last character from the display text
+                            guidedTypedText = guidedTypedText.slice(0, -1);
+                            letters = letters.slice(0, -1);
+
+                            // Remove the last typed letter from visualization
+                            if (typedLetters.length > 0) {
+                                typedLetters.pop();
+                            }
+
+                            // Update cursor position
+                            if (guidedLetterX > margin / 2 + 60) {
+                                guidedLetterX -= textWidth(letters.slice(-1));
+                            } else if (numberOfEnters > 0) {
+                                // If we're at the start of a line, move up a line
+                                numberOfEnters--;
+                                guidedLetterY -= leading;
+                                // Find the last line's width
+                                const lastNewlineIndex = letters.lastIndexOf('\n');
+                                const lastLine = letters.slice(lastNewlineIndex + 1);
+                                guidedLetterX = margin / 2 + 60 + textWidth(lastLine);
+                            }
+                        }
+                    } else {
+                        // Add character to display text
+                        guidedTypedText += char;
+                        letters += char;
+
+                        // Create a TypedLetter for visualization
+                        textSize(textsize);
+                        typedLetters.push(new TypedLetter(char, guidedLetterX, guidedLetterY));
+
+                        // Update position for next letter
+                        guidedLetterX += textWidth(char);
+
+                        // Check if we need to wrap to next line
+                        if (guidedLetterX > width * MAX_TEXT_WIDTH_PERCENTAGE) {
+                            guidedLetterX = margin / 2 + 60;
+                            guidedLetterY += leading;
+                            letters += '\n';
+                            numberOfEnters++;
+
+                            checkAndScrollCanvas();
+
+                        }
+                    }
+
+                    // If the character is in the notes map, play the note
+                    if (char in notesMap) {
+                        playNote(notesMap[char]);
+                    }
                 }
 
                 // Set up for the next note
                 guidedCurrentNoteIndex++;
-                guidedNextNoteTime = currentTime + (duration * 1000);
+                // Use duration directly if in milliseconds, convert to milliseconds if in seconds
+                guidedNextNoteTime = currentTime + (useMilliseconds ? duration : duration * 1000);
             }
         } else {
             // All notes have been played
@@ -238,25 +385,105 @@ function drawGuided() {
         }
     }
 
-    // Handle the waiting period after the sequence is complete
     if (guidedSequenceComplete) {
-        fill(255);
-        textSize(20);
+        // Use the same color transition logic as elsewhere
+        let { backgroundColor, textColor } = transitionColors();
+        
+        // Clear the screen first with push/pop to isolate styling changes
+        push();
+        background(backgroundColor);
+        drawBorder(backgroundColor);
+        
+        // Reset all text formatting to ensure clean centering
         textAlign(CENTER, CENTER);
-        text("Sequence complete! Moving to freeplay mode...", width / 2, height / 2 + 100);
-
-        // After 3-second wait, advance to freeplay
-        if (currentTime >= guidedEndTime) {
+        textFont('Consolas');
+        textSize(textsize * 0.8);
+        fill(letterColor);
+        noStroke();
+        textStyle(NORMAL);
+        
+        // Type out the text one character at a time
+        if (currentChar < fullMessage.length) {
+            if (millis() - lastTypedTime > typingSpeed) {
+                typingText += fullMessage.charAt(currentChar);
+                currentChar++;
+                lastTypedTime = millis();
+            }
+        } else if (!showContinuePrompt) {
+            // Show "Press any key to continue" after the full message is typed
+            showContinuePrompt = true;
+        }
+        
+        // First split by explicit line breaks
+        let paragraphs = typingText.split('\n');
+        let lines = [];
+        
+        // Then handle word wrapping within each paragraph
+        for (let paragraph of paragraphs) {
+            if (paragraph.trim() === '') {
+                // Add empty line for paragraph breaks
+                lines.push('');
+                continue;
+            }
+            
+            let words = paragraph.split(' ');
+            let currentLine = "";
+            
+            // Create lines of reasonable length
+            for (let word of words) {
+                if (currentLine.length + word.length + 1 <= 95) { // adjust line length as needed 
+                    currentLine += (currentLine === "" ? "" : " ") + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            if (currentLine !== "") {
+                lines.push(currentLine);
+            }
+        }
+        
+        // Calculate vertical spacing and center the text block
+        let lineHeight = textsize * 1.3;
+        let totalHeight = lines.length * lineHeight;
+        let startY = (height - totalHeight) / 2;
+        
+        // Draw each line centered
+        for (let i = 0; i < lines.length; i++) {
+            text(lines[i], width / 2, startY + i * lineHeight);
+        }
+        
+        // Add blinking cursor after the text if still typing
+        if (currentChar < fullMessage.length) {
+            let lastLine = lines[lines.length - 1];
+            let cursorX = width / 2 + textWidth(lastLine) / 2 + 5;
+            let cursorY = startY + (lines.length - 1) * lineHeight;
+            
+            // Cursor logic would go here
+        }
+        
+        // Show "Press any key to continue" after the message is fully typed
+        if (showContinuePrompt) {
+            textStyle(BOLD);
+            text("Press any key to continue", width / 2, startY + totalHeight + lineHeight * 2);
+        }
+        
+        pop();
+        
+        // Check for key press to advance to freeplay (only after message is fully typed)
+        if (showContinuePrompt && keyIsPressed) {
             gameState = "freeplay";
             loadFreeplay();
         }
     }
-
     drawBorder(backgroundColor);
 
 }
 
 function loadFreeplay() {
+
+    window.gameState = "freeplay";
+
     letters = "";
     typedLetters = [];
     numberOfEnters = 0;
@@ -270,16 +497,37 @@ function loadFreeplay() {
 }
 
 function drawFreeplay() {
+    document.querySelector('.page-title').style.display = 'block';
+    document.querySelector('.play-button').style.display = 'none';
+
     // Gradually transition colors
     let { backgroundColor, textColor } = transitionColors();
 
     background(backgroundColor);
 
-    // Update and display sticky notes
+    let zoomedSticky = null;
+    let cornerSticky = null;
+    
     for (let sticky of stickies) {
-        sticky.update();
-        sticky.display();
+        if (sticky.isZoomed) {
+            zoomedSticky = sticky;
+        } else {
+            cornerSticky = sticky;
+        }
     }
+    
+    // Draw the corner sticky first (if any)
+    if (cornerSticky) {
+        cornerSticky.update();
+        cornerSticky.display();
+    }
+    
+    // Draw the zoomed sticky on top if any
+    if (zoomedSticky) {
+        zoomedSticky.update();
+        zoomedSticky.display();
+    }
+    
 
     // If enough letters are typed, enable wiggling
     if (sallyHintText && sallyHintText.length > 0 && currentHintTextIndex < sallyHintText.length) {
@@ -369,18 +617,13 @@ function transitionColors() {
     let textBrightness = (textColor[0] * 299 + textColor[1] * 587 + textColor[2] * 114) / 1000;
     let contrastRatio = (Math.max(brightness, textBrightness) + 0.05) / (Math.min(brightness, textBrightness) + 0.05);
 
-    if (contrastRatio < 4.5) {
-        // Attempt to boost or reduce text color while maintaining green hue
-        if (brightness > textBrightness) {
-            textColor[0] = Math.max(0, textColor[0] * 0.5);
-            textColor[1] = Math.max(0, textColor[1] * 0.5);
-            textColor[2] = Math.max(0, textColor[2] * 0.5);
-        } else {
-            textColor[0] = Math.min(255, textColor[0] * 1.5);
-            textColor[1] = Math.min(255, textColor[1] * 1.5);
-            textColor[2] = Math.min(255, textColor[2] * 1.5);
-        }
-    }
+// Enforce a minimum contrast ratio by adjusting text color while keeping it green-ish
+if (contrastRatio < 4.5) {
+    let adjustment = brightness > 127 ? -40 : 40;  // Make text darker or lighter
+    textColor[0] = constrain(textColor[0] + adjustment, 0, 100);  // R channel (keep low to stay green)
+    textColor[1] = constrain(textColor[1] + adjustment, 80, 255); // G channel (mainly adjust this)
+    textColor[2] = constrain(textColor[2] + adjustment, 0, 100);  // B channel (keep low to stay green)
+}
 
     // Return the calculated colors
     return {
@@ -444,9 +687,127 @@ function cmToPixels(cm) {
     return cm * (dpi / 2.54); // Convert cm to pixels
 }
 
+function checkAndScrollCanvas() {
+    // Calculate visible area (adjust these values based on your layout)
+    const visibleAreaBottom = height - borderInsetPixels - 120;
+    
+    // Check if text position is going below the visible area
+    if (guidedLetterY - scrollOffset > visibleAreaBottom) {
+        // Adjust scrollOffset to keep text in view
+        scrollOffset = guidedLetterY - visibleAreaBottom + (leading / 2);
+    }
+}
+  
 function mouseMoved() {
     // Check hover state for all stickies
     for (let sticky of stickies) {
         sticky.checkHover(mouseX, mouseY);
     }
 }
+
+function mousePressed() {
+
+    if (introImage) {
+        const imgWidth = 150;
+        const imgHeight = imgWidth * (introImage.height / introImage.width);
+        const imgX = width / 2;
+        const imgY = height / 2 - 270 + leading * 3;  // Y-position of the image
+        
+        if (mouseX > imgX - imgWidth / 2 && mouseX < imgX + imgWidth / 2 &&
+            mouseY > imgY - imgHeight / 2 && mouseY < imgY + imgHeight / 2) {
+            // Redirect to the info page (change this URL as needed)
+            window.location.href = "info.html";
+        }
+    }
+    // First, check if any sticky is currently zoomed
+    let zoomedStickyIndex = -1;
+    for (let i = 0; i < stickies.length; i++) {
+        if (stickies[i].isZoomed) {
+            zoomedStickyIndex = i;
+            break;
+        }
+    }
+    
+    // If a zoomed sticky was clicked, simply unzoom it and return it to corner
+    if (zoomedStickyIndex >= 0 && stickies[zoomedStickyIndex].checkClick(mouseX, mouseY)) {
+        const sticky = stickies[zoomedStickyIndex];
+        sticky.isZoomed = false;
+        Sticky.currentlyZoomed = null;
+        
+        // Just reset its position to the corner
+        const bottomRightX = width - stickySize - 20;
+        const bottomRightY = height - stickySize - 20;
+        sticky.x = bottomRightX;
+        sticky.y = bottomRightY;
+        
+        return;
+    }
+    
+    // If no zoomed sticky was clicked, check the corner sticky
+    for (let i = 0; i < stickies.length; i++) {
+        if (!stickies[i].isZoomed && stickies[i].checkClick(mouseX, mouseY)) {
+            const sticky = stickies[i];
+            
+            // Zoom this sticky
+            sticky.isZoomed = true;
+            Sticky.currentlyZoomed = sticky;
+            
+            // Remove this sticky from the corner
+            stickies.splice(i, 1);
+            
+            // Add the zoomed sticky back to the stickies array (it's now zoomed)
+            stickies.push(sticky);
+            
+            // Get the next sticky from the queue
+            // If queue is empty, restart the cycle
+            if (stickyQueue.length === 0) {
+                // Rebuild the queue with all sticky images except the one that's zoomed
+                for (let j = 1; j <= stickies.length; j++) {
+                    const imgKey = `sticky${j}`;
+                    // Avoid adding the currently zoomed sticky
+                    if (stickyImages[imgKey] && stickyImages[imgKey] !== sticky.img) {
+                        stickyQueue.push(stickyImages[imgKey]);
+                    }
+                }
+            }
+            
+            // Display the next sticky in the corner 
+            if (stickyQueue.length > 0) {
+                const bottomRightX = width - stickySize - 20;
+                const bottomRightY = height - stickySize - 20;
+                const newStickyImg = stickyQueue.shift();
+                stickies.push(new Sticky(newStickyImg, bottomRightX, bottomRightY));
+            }
+            
+            return;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const pageTitle = document.querySelector('.page-title');
+    const playButton = document.querySelector('.play-button');
+  
+    function updateUI() {
+        const pageTitle = document.querySelector('.page-title');
+        const playButton = document.querySelector('.play-button');
+      
+        if (typeof window.gameState !== 'undefined') {
+          if (window.gameState === "intro") {
+            pageTitle.style.display = 'none';
+            playButton.style.display = 'none'; // Hide play button during intro
+          } else if (window.gameState === "guided") {
+            pageTitle.style.display = 'none'; // Hide page title during guided mode
+            playButton.style.display = 'block'; // Show play button in guided
+          } else if (window.gameState === "freeplay") {
+            pageTitle.style.display = 'block'; // Show title in freeplay
+            playButton.style.display = 'block'; // Show play button in freeplay
+          } else {
+            pageTitle.style.display = 'block'; // Default: show title
+            playButton.style.display = 'none'; // Default: hide play button
+          }
+        }
+      }
+  
+    setInterval(updateUI, 100);
+  });
