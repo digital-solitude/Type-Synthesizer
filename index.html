@@ -35,21 +35,6 @@
         window.open("info.html", "_blank");
       });
 
-      // Check game state periodically and update page title visibility
-      document.addEventListener("DOMContentLoaded", function () {
-        setInterval(function () {
-          const pageTitle = document.querySelector(".page-title");
-          // Access gameState from sketch.js
-          if (typeof window.gameState !== "undefined") {
-            if (window.gameState === "freeplay") {
-              pageTitle.style.display = "none";
-            } else {
-              pageTitle.style.display = "block";
-            }
-          }
-        }, 1000); // Check every 100ms
-      });
-
       // Mobile detection
       function isMobileDevice() {
         return (

@@ -188,6 +188,7 @@ function drawIntro() {
     // Use the same color transition logic as freeplay
 
     document.querySelector('.page-title').style.display = 'none';
+    document.querySelector('.play-button').style.display = 'none'; // Hide play button too
 
     let { backgroundColor, textColor } = transitionColors();
 
@@ -296,6 +297,7 @@ function loadGuided() {
 function drawGuided() {
 
     document.querySelector('.page-title').style.display = 'none';
+    document.querySelector('.play-button').style.display = 'none'; // Hide play button
 
     let { backgroundColor, textColor } = transitionColors();
 
@@ -512,7 +514,7 @@ function loadFreeplay() {
 }
 
 function drawFreeplay() {
-    document.querySelector('.page-title').style.display = 'block';
+    document.querySelector('.page-title').style.display = 'none'; // CORRECTED: Hide title in freeplay
     document.querySelector('.play-button').style.display = 'none';
 
     // Gradually transition colors
@@ -816,31 +818,3 @@ function mousePressed() {
     // Optional: Log if a click happened but didn't hit either interactive sticky
     // console.log("Mouse press in freeplay, but not on corner or zoomed sticky.");
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const pageTitle = document.querySelector('.page-title');
-    const playButton = document.querySelector('.play-button');
-  
-    function updateUI() {
-        const pageTitle = document.querySelector('.page-title');
-        const playButton = document.querySelector('.play-button');
-      
-        if (typeof window.gameState !== 'undefined') {
-          if (window.gameState === "intro") {
-            pageTitle.style.display = 'none';
-            playButton.style.display = 'none'; // Hide play button during intro
-          } else if (window.gameState === "guided") {
-            pageTitle.style.display = 'none'; // Hide page title during guided mode
-            playButton.style.display = 'block'; // Show play button in guided
-          } else if (window.gameState === "freeplay") {
-            pageTitle.style.display = 'block'; // Show title in freeplay
-            playButton.style.display = 'block'; // Show play button in freeplay
-          } else {
-            pageTitle.style.display = 'block'; // Default: show title
-            playButton.style.display = 'none'; // Default: hide play button
-          }
-        }
-      }
-  
-    setInterval(updateUI, 100);
-  });
