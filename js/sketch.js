@@ -514,8 +514,8 @@ function loadFreeplay() {
 }
 
 function drawFreeplay() {
-    document.querySelector('.page-title').style.display = 'none'; // CORRECTED: Hide title in freeplay
-    document.querySelector('.play-button').style.display = 'none';
+    document.querySelector('.page-title').style.display = 'block'; // Show title in freeplay
+    document.querySelector('.play-button').style.display = 'none'; // Keep play button hidden
 
     // Gradually transition colors
     let { backgroundColor, textColor } = transitionColors();
