@@ -54,7 +54,7 @@ class Sticky {
             // Position in the right section, not in the text area
             const rightSectionX = width * 0.85; // 85% of the screen width
             targetX = rightSectionX;
-            targetY = height * 0.3; // Center vertically
+            targetY = height * 0.295;
         } else {
             // Normal state - position at bottom right but slightly higher and to the left
             targetWidth = this.baseWidth;
