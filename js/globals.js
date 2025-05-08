@@ -23,7 +23,7 @@ let guidedCurrentNoteIndex = 0; // Current note being played in the sequence
 let guidedNextNoteTime = 0;     // When to play the next note
 let guidedSequenceComplete = false; // Whether the sequence has finished playing
 let guidedEndTime = 0;          // When the guided mode should end
-let guidedPlaybackSpeedModifier = 10; // Controls playback speed of guided sequence
+let guidedPlaybackSpeedModifier = 1; // Controls playback speed of guided sequence
 
 // Typed text & display
 let letters = "";        // A string to store typed text
