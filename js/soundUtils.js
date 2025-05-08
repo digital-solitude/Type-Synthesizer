@@ -25,14 +25,11 @@ function playNote(note) {
         let midiNum = noteToMidi(note);
         let freq = midiToFreq(midiNum);
 
-        envelope.setADSR(attackTime, 0.1, 0.5, 0.5);
-
         distortion.set(distortionAmount, '2x');
 
         let playFreq = Math.max(0, freq + globalNoteShift);
 
-        synth.play(playFreq, 0.5, 0, 0.5);
-        envelope.play(synth.output);
+        synth.play(playFreq, 0.5, 0, 0.2);
 
         delay.process(synth.output, delayTime, 0.5, 2300);
     } else {

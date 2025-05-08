@@ -23,6 +23,7 @@ let guidedCurrentNoteIndex = 0; // Current note being played in the sequence
 let guidedNextNoteTime = 0;     // When to play the next note
 let guidedSequenceComplete = false; // Whether the sequence has finished playing
 let guidedEndTime = 0;          // When the guided mode should end
+let guidedPlaybackSpeedModifier = 10; // Controls playback speed of guided sequence
 
 // Typed text & display
 let letters = "";        // A string to store typed text
@@ -45,7 +46,7 @@ let typingSpeed = 130; // milliseconds per character
 let showContinuePrompt = false;
 
 // Sticky notes
-let availableStickies = []; 
+let availableStickies = [];
 let stickies = [];  // Array to store Sticky instances
 let stickyImages = {};  // Object to store preloaded sticky images
 const stickySize = 70;
@@ -65,7 +66,7 @@ const SCROLL_THRESHOLD = 0.9;  // When to start scrolling (85% of screen height)
 let currentHintTextIndex = 0;  // Index of the current hint text being displayed
 
 // For color transitions
-let bgColorStart = [50, 50, 50] ;     // Dark grey
+let bgColorStart = [50, 50, 50];     // Dark grey
 let bgColorEnd = [245, 245, 245];  // Light grey
 let textColorStart = [150, 255, 150]; // Light green
 let textColorEnd = [0, 200, 0];       // Dark green
@@ -121,9 +122,8 @@ const useMilliseconds = true;
 // note sequence with associated timing
 const guidedNoteSequence = [
 
-    
-    ['Shift', 0],
-    ['Shift', 827.7],
+
+
     ['H', 1254.6],
     ['e', 1651],
     ['l', 1159.7],
@@ -273,7 +273,7 @@ const guidedNoteSequence = [
     ['c', 1256.1],
     ['e', 1110.4],
     [' ', 1159.7],
-    
+
     ['y', 432.5],
     ['o', 359.5],
     ['u', 1091.6],
@@ -307,47 +307,47 @@ const guidedNoteSequence = [
     ['r', 407.6],
     ['d', 583.5],
     ['.', 6607.2],
-    
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
 
- 
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+
+
     ['Shift', 5072.2],
     ['C', 1256.2],
     ['l', 2502.8],
@@ -368,11 +368,11 @@ const guidedNoteSequence = [
     ['.', 6300.8],
     ['.', 6009.4],
     [' ', 4999.5],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
 
     ['Shift', 2337.1],
     ['A', 1274.3],
@@ -389,10 +389,10 @@ const guidedNoteSequence = [
     ['e', 453.2],
     ['d', 680.1],
     ['?', 2523],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                        ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
 
 
     ['b', 2282.3],
@@ -406,9 +406,9 @@ const guidedNoteSequence = [
     ['.', 822.6],
     ['.', 3822.6],
 
-                ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-                ['Backspace',0],['Backspace',0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0],
     ['b', 2282.3],
     ['l', 518.3],
     ['i', 399],
@@ -417,8 +417,8 @@ const guidedNoteSequence = [
     ['.', 2457.9],
     ['.', 3441.6],
     ['.', 4022.6],
-               ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
-               ['Backspace',0],['Backspace',0],['Backspace',0],['Backspace',0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
+    ['Backspace', 0], ['Backspace', 0], ['Backspace', 0], ['Backspace', 0],
     ['b', 2282.3],
     ['r', 518.3],
     ['e', 399],
@@ -431,14 +431,14 @@ const guidedNoteSequence = [
     ['.', 3822.6],
     ['Enter', 2227.7],
     ['              ', 0],
-           
+
     ['i', 453.1],
     ['n', 407.3],
     ['s', 833.3],
     ['i', 379.6],
     ['d', 904.9],
     ['e', 967.6],
-   
+
     ['Enter', 527.7],
     ['               ', 0],
     [' ', 0],
@@ -469,7 +469,7 @@ const guidedNoteSequence = [
     [' ', 0],
     [' ', 0],
     [' ', 0],
-   
+
     ['i', 553.1],
     ['n', 307.3],
     ['s', 833.3],
@@ -511,59 +511,59 @@ const guidedNoteSequence = [
     ['Backspace', 0],
     ['.', 1],
 
-    ['Enter', 0],    
-    ['                                        ', 0], 
+    ['Enter', 0],
+    ['                                        ', 0],
 
     ['u', 294.7],
     ['Backspace', 0],
     ['.', 294.7],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['i', 311.9],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['e', 312.5],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['t', 616],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['w', 625.1],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
-     
+    ['                                        ', 0],
+
     ['o', 342.5],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['r', 343.8],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['d', 359],
     ['Backspace', 0],
     ['.', 1],
-    ['Enter', 0], 
-    ['                                        ', 0], 
+    ['Enter', 0],
+    ['                                        ', 0],
     ['s', 1095.9],
     ['Backspace', 0],
     ['.', 1],
     ['Enter', 0],
-    ['                                        ', 0], 
+    ['                                        ', 0],
     ['.', 452.2],
     ['Backspace', 0],
 
-    
+
     ['p', 1009.9],
     ['e', 264.3],
     ['o', 281.8],
@@ -577,7 +577,7 @@ const guidedNoteSequence = [
     ['Backspace', 1],
     ['Backspace', 1],
     ['Backspace', 1],
-    
+
     ['p', 327.8],
     ['o', 303.5],
     ['w', 327.3],
@@ -702,7 +702,6 @@ const guidedNoteSequence = [
     ['Backspace', 1],
     ['Backspace', 1],
     ['Backspace', 1],
-    ['Backspace', 1],
     ['Backspace', 3000],
 
     ['i', 553.1],
@@ -725,7 +724,7 @@ const guidedNoteSequence = [
 
     ['Enter', 2527.7],
     ['                                                     ', 0],
-   
+
     ['i', 553.1],
     ['n', 307.3],
     ['s', 833.3],

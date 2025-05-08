@@ -79,10 +79,10 @@ function setup() {
     if (stickyQueue.length > 0) {
         const firstImg = stickyQueue.shift(); // Take the first image from the queue
         if (firstImg) {
-             cornerSticky = new Sticky(firstImg, bottomRightX, bottomRightY);
-             console.log("Initial corner sticky set.");
+            cornerSticky = new Sticky(firstImg, bottomRightX, bottomRightY);
+            console.log("Initial corner sticky set.");
         } else {
-             console.error("First image from queue was undefined.");
+            console.error("First image from queue was undefined.");
         }
     } else {
         console.warn("No sticky images loaded or queue is empty, cannot set initial corner sticky.");
@@ -102,6 +102,7 @@ function setup() {
             alert('Audio components failed to load. Please refresh the page or check console for errors.');
         } else {
             synth = new p5.PolySynth();
+            synth.setADSR(attackTime, 0.1, 0.5, 0.5);
             console.log('Synthesizer initialized successfully');
         }
     } catch (e) {
@@ -194,29 +195,29 @@ function drawIntro() {
 
     background(backgroundColor);
     drawBorder(backgroundColor);
-    
+
     // Use letterColor for text - same as guided mode
     fill(letterColor);
     textAlign(CENTER, CENTER);
-    
+
     noStroke();
 
     // Set smaller text size (80% of original size)
-    textSize(textsize * 0.8);  
+    textSize(textsize * 0.8);
     textFont('Consolas');  // Use the same font as guided mode
-    
+
     // Calculate vertical spacing based on the same leading value as guided mode
     let yPos = height / 2 - 270;  // Adjusted to center all content
-    
+
     // Main title text - use formatting from guided mode
     textStyle(BOLD);
     text("Sally's Helpers", width / 2, yPos);
     yPos += leading * 1;  // Increased space after title
-    
+
     textStyle(ITALIC);
     text("a distributed lament", width / 2, yPos);
     yPos += leading * 1;  // Adjusted space between subtitle and image
-    
+
     // Draw the small PNG image directly below "a distributed lament"
     let imgHeight = 0;
     let isHoveringImage = false; // Flag to track hover state
@@ -250,17 +251,17 @@ function drawIntro() {
 
     // Update yPos after image to continue the text below it
     yPos += imgHeight + leading * 3;  // Adjust yPos after image
-    
+
     // Description text
     textStyle(NORMAL);
     text("This experience requires sound, a keyboard, and your attention.", width / 2, yPos);
     yPos += leading * 1  // Slightly more space before the requirements list
-    
+
     // Requirements list
     textStyle(ITALIC);
     text("Please wear headphones and switch to fullscreen [F11], if possible.", width / 2, yPos);
     yPos += leading * 2;  // More space between requirement and call to action
-    
+
     // Call to action - use bold for emphasis
     textStyle(BOLD);
     text("When you are ready, press any key to begin.", width / 2, yPos);
@@ -277,8 +278,8 @@ function loadGuided() {
     guidedSequenceComplete = false;
     guidedEndTime = 0;
 
-     // Add this line to update the global gameState variable
-     window.gameState = "guided";
+    // Add this line to update the global gameState variable
+    window.gameState = "guided";
 
     // Reset guided mode text display
     guidedTypedText = "";
@@ -311,8 +312,8 @@ function drawGuided() {
 
     // Display cursor at current position
     blinkingCursor.update();
-   //
-   // blinkingCursor.display(guidedLetterX, guidedLetterY - scrollOffset);
+    //
+    // blinkingCursor.display(guidedLetterX, guidedLetterY - scrollOffset);
 
     const currentTime = millis();
 
@@ -393,7 +394,7 @@ function drawGuided() {
                 // Set up for the next note
                 guidedCurrentNoteIndex++;
                 // Use duration directly if in milliseconds, convert to milliseconds if in seconds
-                guidedNextNoteTime = currentTime + (useMilliseconds ? duration : duration * 1000);
+                guidedNextNoteTime = currentTime + (useMilliseconds ? duration : duration * 1000) / guidedPlaybackSpeedModifier;
             }
         } else {
             // All notes have been played
@@ -405,12 +406,12 @@ function drawGuided() {
     if (guidedSequenceComplete) {
         // Use the same color transition logic as elsewhere
         let { backgroundColor, textColor } = transitionColors();
-        
+
         // Clear the screen first with push/pop to isolate styling changes
         push();
         background(backgroundColor);
         drawBorder(backgroundColor);
-        
+
         // Reset all text formatting to ensure clean centering
         textAlign(CENTER, CENTER);
         textFont('Consolas');
@@ -418,7 +419,7 @@ function drawGuided() {
         fill(letterColor);
         noStroke();
         textStyle(NORMAL);
-        
+
         // Type out the text one character at a time
         if (currentChar < fullMessage.length) {
             if (millis() - lastTypedTime > typingSpeed) {
@@ -430,11 +431,11 @@ function drawGuided() {
             // Show "Press any key to continue" after the full message is typed
             showContinuePrompt = true;
         }
-        
+
         // First split by explicit line breaks
         let paragraphs = typingText.split('\n');
         let lines = [];
-        
+
         // Then handle word wrapping within each paragraph
         for (let paragraph of paragraphs) {
             if (paragraph.trim() === '') {
@@ -442,10 +443,10 @@ function drawGuided() {
                 lines.push('');
                 continue;
             }
-            
+
             let words = paragraph.split(' ');
             let currentLine = "";
-            
+
             // Create lines of reasonable length
             for (let word of words) {
                 if (currentLine.length + word.length + 1 <= 95) { // adjust line length as needed 
@@ -459,34 +460,34 @@ function drawGuided() {
                 lines.push(currentLine);
             }
         }
-        
+
         // Calculate vertical spacing and center the text block
         let lineHeight = textsize * 1.3;
         let totalHeight = lines.length * lineHeight;
         let startY = (height - totalHeight) / 2;
-        
+
         // Draw each line centered
         for (let i = 0; i < lines.length; i++) {
             text(lines[i], width / 2, startY + i * lineHeight);
         }
-        
+
         // Add blinking cursor after the text if still typing
         if (currentChar < fullMessage.length) {
             let lastLine = lines[lines.length - 1];
             let cursorX = width / 2 + textWidth(lastLine) / 2 + 5;
             let cursorY = startY + (lines.length - 1) * lineHeight;
-            
+
             // Cursor logic would go here
         }
-        
+
         // Show "Press any key to continue" after the message is fully typed
         if (showContinuePrompt) {
             textStyle(BOLD);
             text("Press any key to continue", width / 2, startY + totalHeight + lineHeight * 2);
         }
-        
+
         pop();
-        
+
         // Check for key press to advance to freeplay (only after message is fully typed)
         if (showContinuePrompt && keyIsPressed) {
             gameState = "freeplay";
@@ -626,13 +627,13 @@ function transitionColors() {
     let textBrightness = (textColor[0] * 299 + textColor[1] * 587 + textColor[2] * 114) / 1000;
     let contrastRatio = (Math.max(brightness, textBrightness) + 0.05) / (Math.min(brightness, textBrightness) + 0.05);
 
-// Enforce a minimum contrast ratio by adjusting text color while keeping it green-ish
-if (contrastRatio < 4.5) {
-    let adjustment = brightness > 127 ? -40 : 40;  // Make text darker or lighter
-    textColor[0] = constrain(textColor[0] + adjustment, 0, 100);  // R channel (keep low to stay green)
-    textColor[1] = constrain(textColor[1] + adjustment, 80, 255); // G channel (mainly adjust this)
-    textColor[2] = constrain(textColor[2] + adjustment, 0, 100);  // B channel (keep low to stay green)
-}
+    // Enforce a minimum contrast ratio by adjusting text color while keeping it green-ish
+    if (contrastRatio < 4.5) {
+        let adjustment = brightness > 127 ? -40 : 40;  // Make text darker or lighter
+        textColor[0] = constrain(textColor[0] + adjustment, 0, 100);  // R channel (keep low to stay green)
+        textColor[1] = constrain(textColor[1] + adjustment, 80, 255); // G channel (mainly adjust this)
+        textColor[2] = constrain(textColor[2] + adjustment, 0, 100);  // B channel (keep low to stay green)
+    }
 
     // Return the calculated colors
     return {
@@ -697,14 +698,14 @@ function cmToPixels(cm) {
 function checkAndScrollCanvas() {
     // Calculate visible area (adjust these values based on your layout)
     const visibleAreaBottom = height - borderInsetPixels - 120;
-    
+
     // Check if text position is going below the visible area
     if (guidedLetterY - scrollOffset > visibleAreaBottom) {
         // Adjust scrollOffset to keep text in view
         scrollOffset = guidedLetterY - visibleAreaBottom + (leading / 2);
     }
 }
-  
+
 function mouseMoved() {
     // Check hover state for all stickies
     for (let sticky of stickies) {
